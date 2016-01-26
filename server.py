@@ -19,10 +19,12 @@ while(True):
         print ('connection from: ', client_address)
         while(True):
             data = connection.recv(100)
-            print('recieved %s' %data.decode('utf-8'))
+            decoded = data.decode('utf-8')
+            print('recieved %s' %decoded)
+
             if data:
                 print ('sending data back to the client')
-                tempData = data.decode('utf-8')
+                tempData = decoded.upper()
                 connection.sendall(tempData.encode('utf-8'))
             else:
                 print('no more data from: ', client_address)
