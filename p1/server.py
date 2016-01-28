@@ -23,11 +23,11 @@ while(True):
             print('recieved %s' %decoded)
 
             if data:
-                print ('sending data back to the client')
                 tempData = decoded.upper()
+                print ('sending %s back to the client' %tempData)
                 connection.sendall(tempData.encode('utf-8'))
             else:
-                print('no more data from: ', client_address)
+                print(client_address, ' has disconnected')
                 break
     finally:
         connection.close
