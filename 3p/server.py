@@ -24,18 +24,31 @@ s.bind(server_address) #socket is bound to the server address
 while(True):
     #wait for connection
   try:
+    #keep trying, one day you will get a file
     while(True):
-      #data, addr = s.recvfrom(buffer)
+      #data is a <buffer> sized chunk, addr is where it's coming from
       data, addr = s.recvfrom(buffer)
+
+      #if the data you got is 'y'
       if(data.decode('utf-8') == 'y'):
+        #open up a file named the thing below this
         f = open('receive.jpg', 'wb')
+
+        #keep going until you got the whole thing
         while(True):
+          #get more <buffer> sized chunks
           data, addr = s.recvfrom(buffer)
+
+          #if ur done
           if(not data):
             print('you done son, come at me with another one')
             # s.close
+            f.close()
             break
+
+          #if data isn't empty print nonsense
           print(data[0])
+          #stack bytes ontop of what you already have until you get a file
           f.write(data)
 
   finally:

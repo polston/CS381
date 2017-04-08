@@ -23,17 +23,29 @@ choice = input('send file? (y/n): ')
 
 try:
   if(choice == 'y'):
+
+    #send 'y' to the server, to let it know it's going to get the file
     s.sendto(choice.encode('utf8'), server_address)
+
+    #open up the file you're going to send
     with open('./send.JPG', 'rb') as f:
+      #read <buffer> amount of the file
       bytesToSend = f.read(buffer)
+      #send <buffer> amount of the file to the server
       s.sendto(bytesToSend, server_address)
+      #while there are bytes to send
       while(bytesToSend != ''):
+        #print gobbledygook
         print(bytesToSend)
+        #if you're done, leave
         if(not bytesToSend):
           break
+        #if you have more bytes to send, get 'em
         bytesToSend = f.read(buffer)
+        #get those bytes OUTTA HERE
         s.sendto(bytesToSend, server_address)
-        
+
+#ur done
 finally:
     print('closing socket and exiting client')
     
