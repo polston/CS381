@@ -11,7 +11,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 port = 3000
 address = socket.gethostname()
 decoded = ''
-buffSize = 2
+buffer = 1024
 
 #bind socket to the port
 server_address = (address, port)
@@ -23,26 +23,23 @@ s.bind(server_address) #socket is bound to the server address
 
 while(True):
     #wait for connection
-    print ('waiting for a connection')
-    
-    try:
-        #connection, client_address = s.accept() #accept connection
-        #print ('connection from: ', client_address)
+  try:
+    while(True):
+      #data, addr = s.recvfrom(buffer)
+      data, addr = s.recvfrom(buffer)
+      if(data.decode('utf-8') == 'y'):
+        f = open('receive.jpg', 'wb')
         while(True):
-            data, addr = s.recvfrom(buffSize) #data recieved from client
-            decoded = data.decode('utf-8') #decodes client string from recieved bytes
-            print('recieved: {}'.format(decoded))
-            
-            if data: #if data is received
-                tempData = decoded.upper() #captializes decoded string
-                print ('sending \'{}\' back to the client'.format(tempData)) #prints the capitalized string for refence
-                tempData = tempData.encode('utf-8') #encodes tempData to send to client
-                s.sendto(tempData, addr) #sends capitalized string back to client
-            else:
-                print(client_address, ' has disconnected')
-                break
-    finally:
-        print('closing connection')
-        connection.close #close connection
+          data, addr = s.recvfrom(buffer)
+          if(not data):
+            print('you done son, come at me with another one')
+            # s.close
+            break
+          print(data[0])
+          f.write(data)
+
+  finally:
+      print('closing connection')
+      # connection.close #close connection
         
 s.close #close socket
