@@ -11,7 +11,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 port = 3000
 address = socket.gethostname()
 sentinel = 'exit' #string used to exit the client
-buffer = 2048
+buffer = 2
 
 #connect the socket to the port where the server is listening
 server_address = (address, port) #connects to the server

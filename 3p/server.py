@@ -11,7 +11,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 port = 3000
 address = socket.gethostname()
 decoded = ''
-buffSize = 2048
+buffSize = 2
 
 #bind socket to the port
 server_address = (address, port)
