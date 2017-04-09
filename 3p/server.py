@@ -1,5 +1,5 @@
-#CS 381 Networking Project 1 - server.py
-#Michael Polston
+#CS 381 Networking Project 3 - server.py
+#Michael Polston, Austin Little
 #Server for server/client relation
 #Ran on Windows 10 in it's own terminal
 
