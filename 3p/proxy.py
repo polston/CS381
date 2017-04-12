@@ -1,6 +1,7 @@
 import sys, socket, random
 import helpers
 import time
+import struct
 
 sendPort = 3000
 proxPort = 3001
@@ -34,30 +35,8 @@ while True:
     while(True):
         #get more <buffer> sized chunks
         data, addr = s.recvfrom(buffer)
-        # print('data: ', data, ' addr: ', addr)
-        
-        if(data):
-            #if ur done
-            if(data.decode('utf-8') == '&&$$__!!##@@'):
-                #time.sleep(0.001)
-                print('No more packets to forward - exiting program')
-                s.sendto(data, destHost)
-                sys.exit() #close the program
-                break
-            else:
-                # print('Recieved Packet: {}'.format(data))
-                # s.sendto(received.encode('utf8'), sendHost) #I don't know what this line is doing - "supposed" to be ACK
-                #print('ACK Sent')
-                #if(random.uniform(0,100) <= int(dropRate)):
-                 # i+=1  
-                #s.sendto(data, sendHost)
-                s.sendto(data, destHost)
-                #time.sleep(0.01)
-                #time.sleep(0.001)
-                i+=1
-                #print('{} packets sent'.format(i))
-                # print('Sent Packet: {}'.format(data))
 
+        s.sendto(data, destHost)
                 
   finally:
       print('closing connection')

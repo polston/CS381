@@ -32,7 +32,6 @@ s.bind(sendHost_address)
 #s.connect(proxy_address)
 
 choice = input('send file? (y/n):\n')
-
 chunked = []
 unChunked = []
 
@@ -41,13 +40,9 @@ try:
   if(choice == 'y'):
     i = 0 #chunk index
     
-    #send 'y' to the server, to let it know it's going to get the file
-    #s.sendto(choice.encode('utf8'), server_address)
-    
-    #open up the file you're going to send
-    file = './send.jpg'
-    chunkSize = helpers.getFileSize(file)
-    tChunks = helpers.getNumChunks(file)
+    filename = input('File path? (\'./filename.extension\' for current directory)')
+    chunkSize = helpers.getFileSize(filename)
+    tChunks = helpers.getNumChunks(filename)
 
     print('file size: ', chunkSize)
     print('# of chunks: ', tChunks)
@@ -71,34 +66,23 @@ try:
         #increments for the index of the chunk
         i += 1
 
-  #removes file if it already exists
-  if(os.path.isfile('./receive.jpg')):
-    print('removing receive.jpg')
-    os.remove('./receive.jpg')
-  
-  #initializes a bytes variable
-  byteFile = b''
-
-  #concatenates all of the unchunked things into a single bytes type
-  for chunk in unChunked:
-    byteFile += chunk
-  
-  # print("Native byteorder: ", sys.byteorder)
-
-  #writes the byteFile to a file
-  with io.open('./receive.jpg', 'wb') as f:
-    f.write(byteFile)
-  f.close()
+  i = 0
+  for chunk in chunked:
+    s.sendto(chunk, proxy_address)
+    time.sleep(0.0001)
+    # print(i) # current chunk being sent
+    i += 1
+  s.sendto(helpers.rawWrap('done'.encode('utf-8')), proxy_address)
 
 #ur done
 finally:
 
   #prints to look at individual wrapped/unwrapped chunks
-  print('chunked: ', chunked[1])
+  # print('chunked: ', chunked[1])
   print('------------------')
-  print('unchunked: ', unChunked[1])
+  # print('unchunked: ', unChunked[1])
 
   #prints the arrays of matching and unmatching indexes
-  # print(helpers.compareIndexes(chunked, unChunked))
+  # print(helpers.compareChunks(chunked, unChunked))
 
   s.close() #closes socket
