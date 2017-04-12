@@ -31,7 +31,8 @@ print ('connecting to {}:{}'.format(proxy_address[0], proxy_address[1]))
 s.bind(sendHost_address)
 #s.connect(proxy_address)
 
-choice = input('send file? (y/n):\n')
+# choice = input('send file? (y/n):\n')
+choice = 'y'
 chunked = []
 unChunked = []
 
@@ -40,7 +41,8 @@ try:
   if(choice == 'y'):
     i = 0 #chunk index
     
-    filename = input('File path? (\'./filename.extension\' for current directory)')
+    # filename = input('File path? (\'./filename.extension\' for current directory)')
+    filename = './send.jpg'
     chunkSize = helpers.getFileSize(filename)
     tChunks = helpers.getNumChunks(filename)
 
@@ -69,7 +71,7 @@ try:
   i = 0
   for chunk in chunked:
     s.sendto(chunk, proxy_address)
-    time.sleep(0.0001)
+    # time.sleep(0.0001)
     # print(i) # current chunk being sent
     i += 1
   s.sendto(helpers.rawWrap('done'.encode('utf-8')), proxy_address)

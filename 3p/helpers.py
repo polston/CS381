@@ -26,11 +26,6 @@ def getNumChunks(file):
 
 #wraps index, total, and chunk into a C-byte-struct-thing
 def wrapChunk(i, total, chunk):
-
-    # print('i size: ', sys.getsizeof(i), ' calc i: ', struct.calcsize('ii{}s'.format(len(chunk))))
-    # print('total size: ', sys.getsizeof(total))
-    # print('chunk size:', sys.getsizeof(chunk))
-
     fmt = 'ii{}s'.format(len(chunk))
     new = struct.pack(fmt, i, total, chunk)
     # print('chunked: ', new)
@@ -57,9 +52,10 @@ def rawWrap(chunk):
     return struct.pack(fmt, chunk)
 
 #verifies length of array is the same as the completed file's
-def verifyChunks(arr, total):
-    print('# of chunks: ', len(arr), ' vs expected total: ', total)
-    if(len(arr) == total):
+def verifyNumberOfChunks(chunks):
+    total = chunks[0][1]
+    print('# of chunks: ', len(chunks), ' vs expected total: ', total)
+    if(len(chunks) == total):
         # print('# of indexes is equal to number of chunks')
         return True
     else:
@@ -67,21 +63,18 @@ def verifyChunks(arr, total):
         return False
 
 # should return list of missing indexes
-def missingIndexes(arr):
-    temp = []
-    print(len(arr))
-    for i in range(0, len(arr)):
-        val = arr[i]
-        if val is None:#notExists(arr[i]):
-            temp.append(i)
-    return temp
+def missingIndexes(chunks):
+    index = indexArray(chunks[0][1])
+    received = receivedIndexes(chunks)
+    missing = list(set(index)- set(received))
+    print({'# Missing': len(missing), '#': missing})
+    return missing
 
-def receivedIndexes(arr):
-    temp = []
-    for i in range(0, len(arr)):
-        if exists(arr[i]):
-            temp.append(i)
-    return temp
+#returns the indexes received
+def receivedIndexes(chunks):
+    received = [index[0] for index in chunks]
+    # print({'# Received': len(received), '#': received})
+    return received
     
 def exists(it):
     return (it is not None)
@@ -102,13 +95,16 @@ def compareChunks(arr1, arr2):
             nottemp.append(i)
     return {'Matching': temp, 'Not Matching': nottemp}
 
-def compareIndexes(index, chunk):
+def compareIndexes(chunks):
+    index = indexArray(chunks[0][1])
     temp = []
     nottemp = []
+    if(verifyNumberOfChunks(chunks) == False):
+        return 'Number of chunks inconsistent'
     for i in range(0, len(index)):
         # print('index: ', index[i])
         # print('chunk: ', chunk[i][0])
-        if(index[i] == chunk[i][0]):
+        if(index[i] == chunks[i][0]):
             temp.append(i)
         else:
             nottemp.append(i)
