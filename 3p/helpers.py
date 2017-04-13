@@ -13,6 +13,8 @@ import struct
 import sys
 # import io
 
+codes = { 'sending': 10, 'missing': 20, 'done':30 }
+
 buffer = 4096
 chunkBytes = 256 #receiver shouldn't know about this before receiving the data
 
@@ -25,9 +27,9 @@ def getNumChunks(file):
     return math.ceil(getFileSize(file)/chunkBytes)
 
 #wraps index, total, and chunk into a C-byte-struct-thing
-def wrapChunk(i, total, chunk):
-    fmt = 'ii{}s'.format(len(chunk))
-    new = struct.pack(fmt, i, total, chunk)
+def wrapChunk(head, i, total, chunk):
+    fmt = '<hii{}s'.format(len(chunk))
+    new = struct.pack(fmt, head, i, total, chunk)
     # print('chunked: ', new)
     return new
 
@@ -37,19 +39,19 @@ def unwrapChunk(chunk):
     # print('chunk size:', sys.getsizeof(chunk))
     #the format is (integer, integer, chunk)
     #chunk size is calculated by subctracting the size of integer*2 from the total received chunk
-    fmt = 'ii{}s'.format(len(chunk) - struct.calcsize('i')*2)
+    fmt = '<hii{}s'.format(len(chunk) - struct.calcsize('i')*2 - struct.calcsize('h'))
     new = struct.unpack(fmt, chunk)
     # print('unchunked: ', new)
     # print()
     return new
 
-def rawUnwrap(chunk):
-    fmt = '{}s'.format(len(chunk))
-    return struct.unpack(fmt, chunk)
-
-def rawWrap(chunk):
-    fmt = '{}s'.format(len(chunk))
+def codeWrap(chunk):
+    fmt = '<h'
     return struct.pack(fmt, chunk)
+
+def codeUnwrap(chunk):
+    fmt = '<h{}s'.format(len(chunk) - struct.calcsize('h'))
+    return struct.unpack(fmt, chunk)
 
 #verifies length of array is the same as the completed file's
 def verifyNumberOfChunks(chunks):
@@ -64,7 +66,8 @@ def verifyNumberOfChunks(chunks):
 
 # should return list of missing indexes
 def missingIndexes(chunks):
-    index = indexArray(chunks[0][1])
+    print(chunks[0])
+    index = indexArray(chunks[0][2])
     received = receivedIndexes(chunks)
     missing = list(set(index)- set(received))
     print({'# Missing': len(missing), '#': missing})
@@ -84,15 +87,18 @@ def notExists(it):
 
 #returns an object with the indexes for matching matching and not-matching indexes
 def compareChunks(arr1, arr2):
+    diff = len(arr1[0]) - len(arr2[0][3])
     temp = []
     nottemp = []
     for i in range(0, len(arr1)):
-        # print('arr1: ', arr1[2])
-        # print('arr2: ', arr2[i][0])
-        if(arr1[i] == arr2[i]):
+        print('arr1: ', arr1[i][diff:])
+        print('arr2: ', arr2[i][3])
+        print()
+        if(arr1[i][diff:] == arr2[i][3]):
             temp.append(i)
         else:
             nottemp.append(i)
+    
     return {'Matching': temp, 'Not Matching': nottemp}
 
 def compareIndexes(chunks):
@@ -121,7 +127,7 @@ def writeFile(bytes, filename, extention):
     byteFile = b''
     #concatenates all chunks into single byte object
     for chunk in bytes:
-        byteFile += chunk[2]
+        byteFile += chunk[3]
     
     #writes the byte object to file
     with open('./'+filename+extention, 'wb') as f:

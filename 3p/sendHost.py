@@ -45,6 +45,7 @@ try:
     filename = './send.jpg'
     chunkSize = helpers.getFileSize(filename)
     tChunks = helpers.getNumChunks(filename)
+    
 
     print('file size: ', chunkSize)
     print('# of chunks: ', tChunks)
@@ -60,7 +61,7 @@ try:
           break
         
         #makes an array of chunks in structs / converted to bytes
-        chunked.append(helpers.wrapChunk(i, tChunks, bytesToSend))
+        chunked.append(helpers.wrapChunk(helpers.codes['sending'], i, tChunks, bytesToSend))
         #this doesn't really need to go here, but it verifies that packed and unpacked structs are the same
         #i.e. that the bytes are correct
         unChunked.append(helpers.unwrapChunk(chunked[i]))
@@ -71,18 +72,19 @@ try:
   i = 0
   for chunk in chunked:
     s.sendto(chunk, proxy_address)
+    # print(helpers.rawUnwrap(chunk))
     # time.sleep(0.0001)
     # print(i) # current chunk being sent
     i += 1
-  s.sendto(helpers.rawWrap('done'.encode('utf-8')), proxy_address)
+  while(True):
+    s.sendto(helpers.codeWrap(helpers.codes['done']), proxy_address)
 
 #ur done
 finally:
-
   #prints to look at individual wrapped/unwrapped chunks
-  # print('chunked: ', chunked[1])
+  print('chunked: ', sys.getsizeof(chunked[1]))
   print('------------------')
-  # print('unchunked: ', unChunked[1])
+  print('unchunked: ', sys.getsizeof(unChunked[1]))
 
   #prints the arrays of matching and unmatching indexes
   # print(helpers.compareChunks(chunked, unChunked))

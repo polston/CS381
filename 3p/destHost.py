@@ -35,8 +35,10 @@ while(True):
     while(True):
       timer1 = time.time()
       data, addr = s.recvfrom(buffer)
-
-      if(helpers.rawUnwrap(data)[0] == b'done'):
+      # print(helpers.codeUnwrap(data)[0] == helpers.codes['done'])
+      # if(helpers.rawUnwrap(data)[0] == b'done'):
+      print()
+      if(helpers.codeUnwrap(data)[0] == helpers.codes['done']):
         print('received done')
         sys.exit()
         break
@@ -47,6 +49,7 @@ while(True):
 
       
       timer2 = time.time()
+      print(timer2-timer1)
 
       #TODO: do better than a crappy timer to figure out when to disconnect
       #you have 10 seconds to start sending the file
@@ -59,24 +62,27 @@ while(True):
     print('closing connection')
     # print('')
     missing = helpers.missingIndexes(tempFile)
-    packedMissing = b'missing' + struct.pack('{}i'.format(len(missing)), *missing)
-    print('packedmissing: ', packedMissing)
-    print('pmissing len: ', len(packedMissing))
-    # for index in missing:
-    #   packedMissing = struct.pack('i', index)# byte reprsentation of the integers
-    #   print(packedMissing) 
-    # print('packedMissing: ', packedMissing)
-    # print('packedMissing size: ', sys.getsizeof(packedMissing))
-    # print('packedMissing len: ', sys.getsizeof(packedMissing) * struct.calcsize('i'))
-    codefmt = len(b'missing')
-    intfmt = int((len(packedMissing) - codefmt) / struct.calcsize('i'))
-    print('bigger?: ', int((len(packedMissing) - codefmt) / struct.calcsize('i'))*struct.calcsize('i')+codefmt )
-    print('num of i', len(packedMissing) - len(b'missing'))
-    print('codefmt: ', codefmt, ' intfmt: ', intfmt)
-    unpackedMissing = struct.unpack('{}s{}'.format(codefmt, intfmt*'i'), packedMissing)
-    print(helpers.rawUnwrap(packedMissing))
-    print('unpackedMissing: ', unpackedMissing)
-    # print('dropped packets: ', missing)
+    # print('missing: ', missing)
+    # packedMissing = b'missing' + struct.pack('{}i'.format(len(missing)), *missing)
+    # print('packedmissing: ', packedMissing)
+    # print('pmissing len: ', len(packedMissing))
+    for i in missing:
+      print(i)
+    # # for index in missing:
+    # #   packedMissing = struct.pack('i', index)# byte reprsentation of the integers
+    # #   print(packedMissing) 
+    # # print('packedMissing: ', packedMissing)
+    # # print('packedMissing size: ', sys.getsizeof(packedMissing))
+    # # print('packedMissing len: ', sys.getsizeof(packedMissing) * struct.calcsize('i'))
+    # codefmt = len(b'missing')
+    # intfmt = int((len(packedMissing) - codefmt) / struct.calcsize('i'))
+    # print('bigger?: ', int((len(packedMissing) - codefmt) / struct.calcsize('i'))*struct.calcsize('i')+codefmt )
+    # print('num of i', len(packedMissing) - len(b'missing'))
+    # print('codefmt: ', codefmt, ' intfmt: ', intfmt)
+    # unpackedMissing = struct.unpack('{}s{}'.format(codefmt, intfmt*'i'), packedMissing)
+    # print(helpers.rawUnwrap(packedMissing))
+    # print('unpackedMissing: ', unpackedMissing)
+    # # print('dropped packets: ', missing)
     # print('')
     # print('received packets: ', len(helpers.receivedIndexes(tempFile)))
     print('')
