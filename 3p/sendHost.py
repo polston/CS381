@@ -62,9 +62,11 @@ try:
         
         #makes an array of chunks in structs / converted to bytes
         chunked.append(helpers.wrapChunk(helpers.codes['sending'], i, tChunks, bytesToSend))
+        
         #this doesn't really need to go here, but it verifies that packed and unpacked structs are the same
         #i.e. that the bytes are correct
         unChunked.append(helpers.unwrapChunk(chunked[i]))
+        
         
         #increments for the index of the chunk
         i += 1

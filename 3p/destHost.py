@@ -9,6 +9,7 @@ import helpers
 import time
 import io
 import struct
+import math
 
 #create UDP/IP socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -37,7 +38,7 @@ while(True):
       data, addr = s.recvfrom(buffer)
       # print(helpers.codeUnwrap(data)[0] == helpers.codes['done'])
       # if(helpers.rawUnwrap(data)[0] == b'done'):
-      print()
+      # print()
       if(helpers.codeUnwrap(data)[0] == helpers.codes['done']):
         print('received done')
         sys.exit()
@@ -49,7 +50,7 @@ while(True):
 
       
       timer2 = time.time()
-      print(timer2-timer1)
+      # print(timer2-timer1)
 
       #TODO: do better than a crappy timer to figure out when to disconnect
       #you have 10 seconds to start sending the file
@@ -60,34 +61,14 @@ while(True):
 
   finally:
     print('closing connection')
-    # print('')
     missing = helpers.missingIndexes(tempFile)
-    # print('missing: ', missing)
-    # packedMissing = b'missing' + struct.pack('{}i'.format(len(missing)), *missing)
-    # print('packedmissing: ', packedMissing)
-    # print('pmissing len: ', len(packedMissing))
-    for i in missing:
-      print(i)
-    # # for index in missing:
-    # #   packedMissing = struct.pack('i', index)# byte reprsentation of the integers
-    # #   print(packedMissing) 
-    # # print('packedMissing: ', packedMissing)
-    # # print('packedMissing size: ', sys.getsizeof(packedMissing))
-    # # print('packedMissing len: ', sys.getsizeof(packedMissing) * struct.calcsize('i'))
-    # codefmt = len(b'missing')
-    # intfmt = int((len(packedMissing) - codefmt) / struct.calcsize('i'))
-    # print('bigger?: ', int((len(packedMissing) - codefmt) / struct.calcsize('i'))*struct.calcsize('i')+codefmt )
-    # print('num of i', len(packedMissing) - len(b'missing'))
-    # print('codefmt: ', codefmt, ' intfmt: ', intfmt)
-    # unpackedMissing = struct.unpack('{}s{}'.format(codefmt, intfmt*'i'), packedMissing)
-    # print(helpers.rawUnwrap(packedMissing))
-    # print('unpackedMissing: ', unpackedMissing)
-    # # print('dropped packets: ', missing)
-    # print('')
-    # print('received packets: ', len(helpers.receivedIndexes(tempFile)))
-    print('')
-
+    missingChunks = []
+      
+    missingChunks = helpers.wrapMissing(missing)
+    print(missingChunks)
+    
     # helpers.verifyNumberOfChunks(tempFile, tempFile[0][1])
     # print(helpers.compareIndexes(tempFile))
 
     helpers.writeFile(tempFile, 'output', '.jpg')
+    print('done')

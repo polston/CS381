@@ -20,7 +20,7 @@ chunkBytes = 256 #receiver shouldn't know about this before receiving the data
 
 #returns the size of the file in bytes
 def getFileSize(file):
-  return os.path.getsize(file)
+    return os.path.getsize(file)
 
 #returns the number of chunks in a file, rounded up 1
 def getNumChunks(file):
@@ -35,14 +35,10 @@ def wrapChunk(head, i, total, chunk):
 
 #unpacks chunk, technically does fuckall until the index and total are done in wrap
 def unwrapChunk(chunk):
-    # print('unchunk size: ', struct.calcsize('ii{}s'.format(len(chunk))))
-    # print('chunk size:', sys.getsizeof(chunk))
-    #the format is (integer, integer, chunk)
     #chunk size is calculated by subctracting the size of integer*2 from the total received chunk
     fmt = '<hii{}s'.format(len(chunk) - struct.calcsize('i')*2 - struct.calcsize('h'))
     new = struct.unpack(fmt, chunk)
     # print('unchunked: ', new)
-    # print()
     return new
 
 def codeWrap(chunk):
@@ -52,6 +48,38 @@ def codeWrap(chunk):
 def codeUnwrap(chunk):
     fmt = '<h{}s'.format(len(chunk) - struct.calcsize('h'))
     return struct.unpack(fmt, chunk)
+
+def wrapMissing(missing):
+    missingChunks = []
+    wrappedChunks = []
+    
+    #while the missing array isn't empty
+    while(len(missing)):
+        tempMissing = []
+        missingSize = 0
+        #for each index in missing
+        for i in missing:
+            #the attempt was to make it so that the byte size didn't
+            #exceed the same space as the file reading buffer
+            #although, I think the way I'm doing it is off, because the maximum
+            #byte size is 291 here after it's been converted to bytes?
+            if(missingSize > 256):
+              break
+            #put the current index into the temporary array which stores only
+            #a few chunks (enough to stay inside of the buffer when converted to bytes)
+            tempMissing.append(missing.pop())
+            missingSize += 4
+        #put the smaller list of chunks into a list of lists of chunks
+        missingChunks.append(tempMissing)
+        
+    #for every group of missing chunks/indexes
+    for i in missingChunks:
+        #the format for packing the chunk is 
+        # little endian, short int (the header), and the chunk itself(all of the integers in the list/chunk)
+        fmt = '<h{}'.format(len(i)*'i')
+        #wrap the chunk, and put it into a list of wrapped chunks
+        wrappedChunks.append(struct.pack(fmt, helpers.codes['missing'], *i))
+    return wrappedChunks
 
 #verifies length of array is the same as the completed file's
 def verifyNumberOfChunks(chunks):
@@ -75,7 +103,7 @@ def missingIndexes(chunks):
 
 #returns the indexes received
 def receivedIndexes(chunks):
-    received = [index[0] for index in chunks]
+    received = [index[1] for index in chunks]
     # print({'# Received': len(received), '#': received})
     return received
     
@@ -122,7 +150,7 @@ def indexArray(size):
         temp.append(i)
     return temp
 
-def writeFile(bytes, filename, extention):
+def writeFile(bytes, filename, extension):
     #initializes bytes object to store file bytes
     byteFile = b''
     #concatenates all chunks into single byte object
@@ -130,6 +158,6 @@ def writeFile(bytes, filename, extention):
         byteFile += chunk[3]
     
     #writes the byte object to file
-    with open('./'+filename+extention, 'wb') as f:
+    with open('./'+filename+extension, 'wb') as f:
         f.write(byteFile)
     f.close()
