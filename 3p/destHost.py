@@ -15,11 +15,13 @@ import io
 import struct
 import math
 
+
 class Destination:
+  #the __init__ for destination is largely the same as sender
   def __init__(self):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # self.s.setblocking(False)
-    self.s.settimeout(0.00001)
+    self.s.settimeout(0.1)
     self.ports = helpers.ports
     self.hostName = socket.gethostname()
     self.buffer = helpers.buffer
@@ -31,38 +33,32 @@ class Destination:
     self.address = (self.hostName, self.ports['dest'])
     self.proxy_address = self.hostName, self.ports['proxy']
     self.s.bind(self.address)
-    self.madeSkeleton = False
+    self.madeSkeleton = False #whether or not a dictionary of chunks has been created
   
           
   #puts the missing chunk indexes into an array
   def getMissing(self):
-    # print('asdfsadfadfasdf')
-    # self.missing = helpers.missingIndexes(self.tempFile)
+    #finds missing indexes from the skeleton/pending file
     self.missing = helpers.missingIndexes(self.pendingFile)
-    # print(helpers.missingIndexes(self.tempFile))
-    # print('missing:', self.missing)
+    #wraps missing indexes into packets to be sent
     self.missingChunks = helpers.wrapMissing(self.missing)
-    # print('missing chunks: \n', self.missingChunks)
-    # self.missing = []
-    # print('\nmissing: ', self.missing)
-    # print('\nmissingchunks: ', self.missingChunks)
 
   #puts the received chunks into an array
   def addToFile(self, chunk):
+    self.tempFile = []
     self.tempFile.append(helpers.unwrapChunk(chunk))
-    # print('tempFile: ', self.tempFile)
     for temp in self.tempFile:
-      
+    # for key in self.pendingFile.keys():
+      #places it into the skeleton if there is currently no chunk in that key:value
+      # if(self.pendingFile.get(0) != None):
+      #   print(self.pendingFile.get(0))
+      #   sys.exit()
       if(self.pendingFile.get(temp[1]) == None):
-        # print('temp1: ', temp[1])
         self.pendingFile[temp[1]] = temp
-    # self.tempFile = []
-
+  
+  #initializes the skeleton of how many chunks will compose the file
   def fileSkeleton(self):
-    # print(helpers.indexArray(self.tempFile[0][2]))
     temp = list(helpers.indexArray(self.tempFile[0][2]))
-    # for i in temp:
-    #   temp[i] = str(i)
     for i in temp:
       self.pendingFile[i] = None
 
@@ -70,31 +66,27 @@ class Destination:
   def sendMissing(self):
     for i in self.missingChunks:
       self.s.sendto(i, self.proxy_address)
-    self.missingChunks = []
+    self.missingChunks = [] #clears missing chunk cache
   
-  # def sendWaiting(self):
-  #   self.s.sendto(i, self.proxy_address)
-  
+  #sends sentinel value to the sender
   def sendComplete(self):
     self.s.sendto(helpers.codeWrap(helpers.codes['complete']), self.proxy_address)
 
+  #makes decision based on type of message received
   def decision(self, data):
+    #if the message is a chunk being sent
     if(helpers.codeUnwrap(data)[0] == helpers.codes['sending']):
-      # print('received sending')
       self.addToFile(data)
-      # print('pending file length?:', len(self.pendingFile), ' expected length?: ', self.tempFile[0][2])
-    elif(helpers.codeUnwrap(data)[0] == helpers.codes['complete']):
-      #stop
-      print('complete?')
   
+  #if each key in the skeleton has the appropriate value
+  #the file is ready to be written
   def fileReady(self):
-    # print('pending file length?:', len(self.pendingFile), ' expected length?: ', self.tempFile[0][2])
     for chunk in self.pendingFile:
       if(self.pendingFile[chunk] == None):
-        # print('missing chunk: ', chunk)
-        return False
-    return True
+        return False #if any value is empty
+    return True #if all values are accounted for
   
+  #count the number of values inside the dictionary
   def countValues(self):
     counter = 0
     value = 0
@@ -105,42 +97,35 @@ class Destination:
   
 
 
-destHost = Destination()
+destHost = Destination() #instantiate the destination
 print('Waiting for connection.')
 
 while(True):
-  start = time.time()
   try:
     data, addr = destHost.s.recvfrom(destHost.buffer)
-    destHost.decision(data)
-    # print(data)
-
-    if(destHost.madeSkeleton is False):
-      destHost.fileSkeleton()
-      # print(destHost.pendingFile)
-      destHost.madeSkeleton = True
+    destHost.decision(data) #make decision based on received packet message
+    
+    if(destHost.madeSkeleton is False): #if there is no skeleton yet
+      destHost.fileSkeleton() #make skeleton
+      destHost.madeSkeleton = True #don't make another skeleton
 
   except socket.timeout:
     if(destHost.fileReady() == False):
-      # print('retreiving missing')
-      print('progress: {:0.7f}%'.format(((destHost.countValues()/len(destHost.pendingFile))*100)))
+      #simple progress ticker
+      print('progress: {:0.7f}%'.format( ( (destHost.countValues()/len(destHost.pendingFile)) *100 )))
+      #if there was a timeout find out what you're missing
       destHost.getMissing()
+      #send the missing indexes
       destHost.sendMissing()
-      # destHost.missingChunks = []
-      # print(destHost.pendingFile)
-
-    # if(not destHost.missing or not destHost.missingChunks):
       
-      
+    # check if the skeleton exists
     elif(destHost.pendingFile):
-      # destHost.tempFile = helpers.removeUnneededChunks(destHost.tempFile)
-      # print('pls', helpers.verifyNumberOfChunks(destHost.tempFile), ' - ', helpers.compareIndexes(destHost.tempFile))
-      # print(destHost.pendingFile)
-      if(destHost.fileReady() == True): # if(helpers.verifyNumberOfChunks(destHost.tempFile) and helpers.compareIndexes(destHost.tempFile)):
-        destHost.countValues()
-        destHost.sendComplete()
-        filename = input('Enter file name (without extension): ')
-        ext = input('Enter file\'s extension (include \'.\'): ')
-        print('writing file')
-        helpers.writeFile(destHost.tempFile, filename, ext)
+      #if the skeleton is full, i.e. the file is ready to be written
+      if(destHost.fileReady() == True):
+        print(destHost.countValues()) #was used for verificaton
+        destHost.sendComplete() #send complete message to proxy and sender
+        filename = input('Enter file name/path (with extension): ')
+        print('Writing file')
+        helpers.writeFile(destHost.pendingFile, filename) #writes the file
+        print('File written')
         break
