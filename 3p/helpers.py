@@ -1,3 +1,8 @@
+#CS 381 Networking Project 3 - helpers.py
+#Michael Polston, Austin Little
+#Helpers For Sending Host, Receiving Host, an
+
+
 #half of these are probably not doing anything
 import socket
 import os

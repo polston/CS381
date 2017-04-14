@@ -1,7 +1,9 @@
-#CS 381 Networking Project 3 - client.py
+#CS 381 Networking Project 3 - sendHost.py
 #Michael Polston, Austin Little
-#Client for server/client relation
-#Ran on Windows 10 in it's own terminal
+#Sending Host For Gremlin Proxy
+# This is the sending host for the gremlin proxy/destination host. This host will read a user-entered file name from the local directory, and then
+# convert that file to packets and send to the gremlin proxy. It also continously listens for incoming messages to know whether or not a packet needs to be
+# resent. If it receives a resend request, it will only attempt to resend the missing packets request.
 
 import socket
 import os
@@ -15,7 +17,7 @@ class Sender:
   def __init__(self):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # self.s.setblocking(False)
-    self.s.settimeout(0.1)
+    self.s.settimeout(0.00001)
     self.ports = helpers.ports
     self.hostName = socket.gethostname()
     self.buffer = helpers.buffer
@@ -32,7 +34,7 @@ class Sender:
     self.s.bind(self.address)
 
   def setFileName(self):
-    self.filename = input('File path? (\'./filename.extension\' for current directory)')
+    self.filename = input('File path? (\'./filename.extension\' for current directory): ')
 
   def initChunkValuesFromFile(self):
     self.chunkSize = helpers.getFileSize(self.filename)
@@ -63,14 +65,15 @@ class Sender:
       # print(i) # current chunk being sent
       # i += 1
       # print(chunk)
+      
   def sendDone(self):
       self.s.sendto(helpers.codeWrap(helpers.codes['done']), self.proxy_address)
 
   def decision(self, data):
-    if(helpers.codeUnwrap(data)[0] == helpers.codes['done']):
-      #gather remaining
-      print('done?')
-    elif(helpers.codeUnwrap(data)[0] == helpers.codes['missing']):
+    # if(helpers.codeUnwrap(data)[0] == helpers.codes['done']):
+    #   #gather remaining
+    #   # print('done?')
+    if(helpers.codeUnwrap(data)[0] == helpers.codes['missing']):
       #retreive missing
       self.receiveMissing(data)
       self.sendDone()
@@ -86,7 +89,7 @@ class Sender:
     if(data != [None]):
       # print('data: ', data)
       # print('recv miss: ', self.missing)
-      print('received request for missing data')
+      # print('received request for missing data')
       self.missing.append(helpers.unwrapMissing(data))
       # print('recv miss: ', self.missing[1:])
       self.sendMissing()
@@ -94,6 +97,7 @@ class Sender:
 
   def sendMissing(self):
     # print('missing: ', self.missing[0][1:])
+    print('{} chunks requested for transfer'.format(len(self.missing[0][1:])))
     for i in self.missing[0][1:]:
       self.s.sendto(self.chunked[i], self.proxy_address)
 
@@ -118,15 +122,14 @@ try:
       sendHost.decision(data)
 
     except socket.timeout:
-      try:
         if(sendHost.missing):
           sendHost.sendMissing()
         # print(sendHost.totalChunks)
 
-        print('done?')
+        # print('done?')
 
-      except socket.timeout:
-        print('timeout?')
+      # except socket.timeout:
+      #   # print('timeout?')
     
 
 

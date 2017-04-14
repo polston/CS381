@@ -1,3 +1,10 @@
+#CS 381 Networking Project 3 - proxy.py
+#Michael Polston, Austin Little
+#Gremlin Proxy for Sending/Receiving Hosts
+# This is a gremlin proxy that has a configurable drop rate on packets. It imply forwards packets between the sender and 
+# receiver hosts or drops them, while gathering statistics of the data transmission and printing how it handles each packet
+# in real-time.
+
 import sys, socket, random, helpers #import system libraries and our helper file
 
 #Get Ports of Sender, Proxy, and Receiver

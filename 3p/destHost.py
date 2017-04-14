@@ -1,8 +1,12 @@
-#CS 381 Networking Project 3 - rcvHost.py
+#CS 381 Networking Project 3 - destHost.py
 #Michael Polston, Austin Little
-#Receiving host for proxy
-#
+#Receiving Host For Gremlin Proxy
+# This is the destination host for the gremlin proxy/sending host. This host will receive packets from the proxy, unpack them, and then store them
+# in an array. The sequence numbers are then checked to verify which packets are actually missing, and then requests will be sent to the proxy, which 
+# will then be forwarded to the sending host. The sending host will then resend the packets that the destination requested, and so on and so forth.
+# This will continue until every packet has arrived, and then they are written to a file.
 
+#import statements
 import socket
 import sys
 import helpers
@@ -15,7 +19,7 @@ class Destination:
   def __init__(self):
     self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # self.s.setblocking(False)
-    self.s.settimeout(0.1)
+    self.s.settimeout(0.00001)
     self.ports = helpers.ports
     self.hostName = socket.gethostname()
     self.buffer = helpers.buffer
@@ -102,6 +106,7 @@ class Destination:
 
 
 destHost = Destination()
+print('Waiting for connection.')
 
 while(True):
   start = time.time()
@@ -118,7 +123,7 @@ while(True):
   except socket.timeout:
     if(destHost.fileReady() == False):
       # print('retreiving missing')
-      print('progress: {:0.5f}%'.format(((destHost.countValues()/len(destHost.pendingFile))*100)))
+      print('progress: {:0.7f}%'.format(((destHost.countValues()/len(destHost.pendingFile))*100)))
       destHost.getMissing()
       destHost.sendMissing()
       # destHost.missingChunks = []
@@ -132,10 +137,10 @@ while(True):
       # print('pls', helpers.verifyNumberOfChunks(destHost.tempFile), ' - ', helpers.compareIndexes(destHost.tempFile))
       # print(destHost.pendingFile)
       if(destHost.fileReady() == True): # if(helpers.verifyNumberOfChunks(destHost.tempFile) and helpers.compareIndexes(destHost.tempFile)):
-        print('writing file')
         destHost.countValues()
         destHost.sendComplete()
         filename = input('Enter file name (without extension): ')
         ext = input('Enter file\'s extension (include \'.\'): ')
+        print('writing file')
         helpers.writeFile(destHost.tempFile, filename, ext)
         break
