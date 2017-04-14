@@ -1,18 +1,15 @@
-#half of these are probably not doing anything
+#CS 381 Networking Project 3 - helpers.py
+#Michael Polston, Austin Little
+#Helpers For Sending Host, Receiving Host, an
+
 import socket
 import os
 import time
 import helpers
 import math
-import json
-import binascii
-import pickle
-import codecs
-import base64
 import struct
 import sys
 from operator import itemgetter
-# import io
 
 codes = { 'sending': 10, 'missing': 20, 'done':30, 'complete': 50 }
 
@@ -33,7 +30,6 @@ def getNumChunks(file):
 def wrapChunk(head, i, total, chunk):
     fmt = '<hii{}s'.format(len(chunk))
     new = struct.pack(fmt, head, i, total, chunk)
-    # print('chunked: ', new)
     return new
 
 #unpacks chunk, technically does fuckall until the index and total are done in wrap
@@ -41,21 +37,20 @@ def unwrapChunk(chunk):
     #chunk size is calculated by subctracting the size of integer*2 from the total received chunk
     fmt = '<hii{}s'.format(len(chunk) - struct.calcsize('i')*2 - struct.calcsize('h'))
     new = struct.unpack(fmt, chunk)
-    # print('unchunked: ', new)
     return new
 
+#wraps only the 'header' short int into a packet
 def codeWrap(chunk):
     fmt = '<h'
     return struct.pack(fmt, chunk)
 
+#unwraps the 'header' short int from a packet
 def codeUnwrap(chunk):
     fmt = '<h{}s'.format(len(chunk) - struct.calcsize('h'))
     return struct.unpack(fmt, chunk)
-    # temp = chunk[:2]
-    # print('\n\n\nchunk: ', chunk)
-    # fmt = '<h'
-    return struct.unpack(fmt, chunk)
 
+#wraps the array of missing chunks as integers into a struct
+#to be sent
 def wrapMissing(missing):
     missingChunks = []
     wrappedChunks = []
@@ -81,57 +76,45 @@ def wrapMissing(missing):
         
     #for every group of missing chunks/indexes
     for i in missingChunks:
-        # print('\n\nmissing chunk: ',i)
         #the format for packing the chunk is 
         # little endian, short int (the header), and the chunk itself(all of the integers in the list/chunk)
         fmt = '<h{}'.format(len(i)*'i')
         #wrap the chunk, and put it into a list of wrapped chunks
         wrap = struct.pack(fmt, helpers.codes['missing'], *i)
-        # print('wrap: ', wrap)
-        # print('fmt: ', fmt)
         wrappedChunks.append(wrap)
     return wrappedChunks
 
+#unwraps a payload of an array of integers with a leading short int message
 def unwrapMissing(missing):
     fmt = '<h{}'.format( int(len(missing)/ 4)*'i' )
-    # print('fmt: ', fmt)
-    # print('fmt len?: ', int( ((len(missing)) - struct.calcsize('h')) / struct.calcsize('i')))
-    # print('missing: ', missing)
-    # print('fmt size?: ', (sys.getsizeof(missing) - struct.calcsize('h'))/4 )
     return struct.unpack(fmt, missing)
 
 #verifies length of array is the same as the completed file's
 def verifyNumberOfChunks(chunks):
     total = chunks[0][2]
-    # print('# of chunks: ', len(chunks), ' vs expected total: ', total)
     if(len(chunks) == total):
-        # print('# of indexes is equal to number of chunks')
         return True
     else:
-        # print('# of indexes is not equal to number of chunks')
         return False
 
 # should return list of missing indexes
 def missingIndexes(chunks):
-    # print(chunks[0])
     missing = []
     for key in chunks:
-        # missing = []
         if(chunks[key] == None):
-            # print('key: ', key)
             missing.append(key)
-    # print('missing indexes: ', missing)
     return missing
 
 #returns the indexes received
 def receivedIndexes(chunks):
     received = [index[1] for index in chunks]
-    # print({'# Received': len(received), '#': received})
     return received
-    
+
+#determines whether or not an object exists
 def exists(it):
     return (it is not None)
 
+#determines whether or not an object exists, redundent for readability
 def notExists(it):
     return (it is None)
 
@@ -141,86 +124,51 @@ def compareChunks(arr1, arr2):
     temp = []
     nottemp = []
     for i in range(0, len(arr1)):
-        # print('arr1: ', arr1[i][diff:])
-        # print('arr2: ', arr2[i][3])
-        # print()
         if(arr1[i][diff:] == arr2[i][3]):
             temp.append(i)
         else:
             nottemp.append(i)
-    
     return {'Matching': temp, 'Not Matching': nottemp}
 
+#sorts values of an array based on the [1] index
+#the [1] index in this case is the order that the chunks
+#go into in order to properly form the file
 def sortChunks(chunks):
     sortedChunks = sorted(chunks, key=itemgetter(1))
-    # otherthing = []
-    # # print('\n\nthing: ',thing)
-    # for i in thing:
-    #     otherthing.append(i[1])
-    # print('oteherthing: ',otherthing)
     return sortedChunks
 
+#returns the actual order of chunks from an array/dictonary
 def getChunkOrder(chunks):
     other = []
-    # print(chunks)
     for i in range(0, len(chunks)):
         other.append(chunks[i][1])
-        # print(i)
-    # print('asdfswaf')
     return other
 
-
-# def compareIndexes(chunks):
-    # index = indexArray(chunks[0][2])
-    # temp = []
-    # nottemp = []
-    # # print('sorted?: ', sortAbomination(chunks))
-    # # print('hello?')
-    # if(verifyNumberOfChunks(chunks) == False):
-    #     return 'Number of chunks inconsistent'
-    # for i in range(0, len(index)):
-    #     # print('index: ', index[i], ' - chunk: ', chunks[i][1], ' - ', index[i] == chunks[i][1])
-    #     # print('chunk: ', chunk[i][1])
-    #     if(index[i] == chunks[i][1]):
-    #         temp.append(i)
-    #     else:
-    #         nottemp.append(i)
-    # # print({'Matching': temp, 'Not Matching': nottemp})
-    # if(nottemp):
-    #     return False
-    # else:
-    #     return True
-    # for 
-
-
+#creates an array of length size, with each index being a sequential integer
 def indexArray(size):
     temp = []
     for i in range(0, size):
         temp.append(i)
-    # print(temp)
     return temp
 
-# def removeUnneededChunks(chunks):
-#     temp = chunks
-#     for i in range(0, chunks[0][1]):
-        
-#     return temp
-
+#writes file from bytes
 def writeFile(fileBytes, filename):
     #initializes bytes object to store file bytes
     temp = []
-    for i in fileBytes:
-        temp.append(i)
+    for k, v in fileBytes.items():
+        temp.append(v)
 
+    test = indexArray(len(fileBytes))
     temp = sortChunks(temp)
 
     byteFile = b''
     # print(fileBytes[1][3])
     #concatenates all chunks into single byte object
     for i in range(len(fileBytes)):
-        # print(temp[i])
+        if(temp[i][1] != test[i]):
+            print('faulty?: ', test[i], ' -- ', temp[i])
         byteFile += temp[i][3]
-    
+
     #writes the byte object to file
     with open('./'+filename, 'wb') as f:
         f.write(byteFile)
