@@ -32,7 +32,7 @@ class Sender:
     self.s.bind(self.address)
 
   def setFileName(self):
-    self.filename = './send.jpg' #input('File path? (\'./filename.extension\' for current directory)')
+    self.filename = input('File path? (\'./filename.extension\' for current directory)')
 
   def initChunkValuesFromFile(self):
     self.chunkSize = helpers.getFileSize(self.filename)
@@ -82,17 +82,18 @@ class Sender:
 
   def receiveMissing(self, data):
     # tempMissing = []
-    print('test?????')
+    # print('test?????')
     if(data != [None]):
       # print('data: ', data)
       # print('recv miss: ', self.missing)
+      print('received request for missing data')
       self.missing.append(helpers.unwrapMissing(data))
-      print('recv miss: ', self.missing[1:])
+      # print('recv miss: ', self.missing[1:])
       self.sendMissing()
       self.missing = []
 
   def sendMissing(self):
-    print('\n\nmissing: ', self.missing[0][1:])
+    # print('missing: ', self.missing[0][1:])
     for i in self.missing[0][1:]:
       self.s.sendto(self.chunked[i], self.proxy_address)
 

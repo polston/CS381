@@ -68,8 +68,8 @@ class Destination:
       self.s.sendto(i, self.proxy_address)
     self.missingChunks = []
   
-  def sendWaiting(self):
-    self.s.sendto(i, self.proxy_address)
+  # def sendWaiting(self):
+  #   self.s.sendto(i, self.proxy_address)
   
   def sendComplete(self):
     self.s.sendto(helpers.codeWrap(helpers.codes['complete']), self.proxy_address)
@@ -87,7 +87,7 @@ class Destination:
     # print('pending file length?:', len(self.pendingFile), ' expected length?: ', self.tempFile[0][2])
     for chunk in self.pendingFile:
       if(self.pendingFile[chunk] == None):
-        print('missing chunk: ', chunk)
+        # print('missing chunk: ', chunk)
         return False
     return True
   
@@ -95,10 +95,9 @@ class Destination:
     counter = 0
     value = 0
     for i in range(0, len(self.pendingFile)):
-      print('counter: ', counter, ' value: ', len(self.pendingFile[i][3]))
-      # print('v: ', v)
-      counter += 1
-    print(counter)
+      if(self.pendingFile[i] != None):
+        counter += 1
+    return counter
   
 
 
@@ -118,6 +117,8 @@ while(True):
 
   except socket.timeout:
     if(destHost.fileReady() == False):
+      # print('retreiving missing')
+      print('progress: {:0.5f}%'.format(((destHost.countValues()/len(destHost.pendingFile))*100)))
       destHost.getMissing()
       destHost.sendMissing()
       # destHost.missingChunks = []
@@ -131,9 +132,10 @@ while(True):
       # print('pls', helpers.verifyNumberOfChunks(destHost.tempFile), ' - ', helpers.compareIndexes(destHost.tempFile))
       # print(destHost.pendingFile)
       if(destHost.fileReady() == True): # if(helpers.verifyNumberOfChunks(destHost.tempFile) and helpers.compareIndexes(destHost.tempFile)):
-        print('asdfasdf')
+        print('writing file')
         destHost.countValues()
-        print(destHost.pendingFile[20])
         destHost.sendComplete()
-        helpers.writeFile(destHost.tempFile, 'test', '.jpg')
+        filename = input('Enter file name (without extension): ')
+        ext = input('Enter file\'s extension (include \'.\'): ')
+        helpers.writeFile(destHost.tempFile, filename, ext)
         break

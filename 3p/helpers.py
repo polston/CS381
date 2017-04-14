@@ -87,14 +87,14 @@ def wrapMissing(missing):
         fmt = '<h{}'.format(len(i)*'i')
         #wrap the chunk, and put it into a list of wrapped chunks
         wrap = struct.pack(fmt, helpers.codes['missing'], *i)
-        print('wrap: ', wrap)
-        print('fmt: ', fmt)
+        # print('wrap: ', wrap)
+        # print('fmt: ', fmt)
         wrappedChunks.append(wrap)
     return wrappedChunks
 
 def unwrapMissing(missing):
     fmt = '<h{}'.format( int(len(missing)/ 4)*'i' )
-    print('fmt: ', fmt)
+    # print('fmt: ', fmt)
     # print('fmt len?: ', int( ((len(missing)) - struct.calcsize('h')) / struct.calcsize('i')))
     # print('missing: ', missing)
     # print('fmt size?: ', (sys.getsizeof(missing) - struct.calcsize('h'))/4 )
@@ -103,7 +103,7 @@ def unwrapMissing(missing):
 #verifies length of array is the same as the completed file's
 def verifyNumberOfChunks(chunks):
     total = chunks[0][2]
-    print('# of chunks: ', len(chunks), ' vs expected total: ', total)
+    # print('# of chunks: ', len(chunks), ' vs expected total: ', total)
     if(len(chunks) == total):
         # print('# of indexes is equal to number of chunks')
         return True
@@ -120,7 +120,7 @@ def missingIndexes(chunks):
         if(chunks[key] == None):
             # print('key: ', key)
             missing.append(key)
-    print('missing indexes: ', missing)
+    # print('missing indexes: ', missing)
     return missing
 
 #returns the indexes received
@@ -166,7 +166,7 @@ def getChunkOrder(chunks):
     for i in range(0, len(chunks)):
         other.append(chunks[i][1])
         # print(i)
-    print('asdfswaf')
+    # print('asdfswaf')
     return other
 
 
@@ -218,7 +218,7 @@ def writeFile(fileBytes, filename, extension):
     # print(fileBytes[1][3])
     #concatenates all chunks into single byte object
     for i in range(len(fileBytes)):
-        print(temp[i])
+        # print(temp[i])
         byteFile += temp[i][3]
     
     #writes the byte object to file
