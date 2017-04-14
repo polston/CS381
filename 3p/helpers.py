@@ -206,7 +206,7 @@ def indexArray(size):
         
 #     return temp
 
-def writeFile(fileBytes, filename, extension):
+def writeFile(fileBytes, filename):
     #initializes bytes object to store file bytes
     temp = []
     for i in fileBytes:
@@ -222,6 +222,6 @@ def writeFile(fileBytes, filename, extension):
         byteFile += temp[i][3]
     
     #writes the byte object to file
-    with open('./'+filename+extension, 'wb') as f:
+    with open('./'+filename, 'wb') as f:
         f.write(byteFile)
     f.close()

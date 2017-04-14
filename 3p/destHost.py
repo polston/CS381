@@ -135,7 +135,6 @@ while(True):
         print('writing file')
         destHost.countValues()
         destHost.sendComplete()
-        filename = input('Enter file name (without extension): ')
-        ext = input('Enter file\'s extension (include \'.\'): ')
-        helpers.writeFile(destHost.tempFile, filename, ext)
+        filename = input('Enter file name (include extension): ')
+        helpers.writeFile(destHost.tempFile, filename)
         break
