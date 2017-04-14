@@ -120,6 +120,7 @@ while(True):
       
     # check if the skeleton exists
     elif(destHost.pendingFile):
+
       #if the skeleton is full, i.e. the file is ready to be written
       if(destHost.fileReady() == True):
         print(destHost.countValues()) #was used for verificaton
