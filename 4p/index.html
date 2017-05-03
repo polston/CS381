@@ -40,7 +40,7 @@
     </pre>
   
   <script>
-    let socket = io()
+    // socket = io()
   </script>
   <script src="/graphstuff.js"></script>
 <script> 
@@ -52,22 +52,22 @@
   //     $(data.id).trigger('click')
     // })
 
-cy.nodes().on('click', function(data){
+cy.nodes().on('click', function(){
   // n = n.add(this)
   console.log(this.data())
-  socket.emit('clickaroo', this.id())
+  socket.emit('sending clickaroo click', {data : this.id()})
 })
 
-socket.io.on('clickaroo', function(data){
+socket.on('clickaroo', function(data){
   console.log('received clickaroo')
-  console.log(data)
-  $(data).trigger('click')
+  console.log(data.stuff)
+  // $(data).trigger('click')
 })
 
-socket.io.on('clickaroo', function(data){
+socket.on('clickaroo', function(data){
   console.log('received clickarood')
   console.log(data)
-  $(data).trigger('click')
+  // $(data).trigger('click')
 })
 
 </script>
