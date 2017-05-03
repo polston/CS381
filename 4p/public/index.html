@@ -23,16 +23,6 @@
     <script>
         var cy = cytoscape({
           container: document.getElementById('cy'),
-          elements: [
-            { data: { id: 'a' } },
-            { data: { id: 'b' } },
-            {
-              data: {
-                id: 'ab',
-                source: 'a',
-                target: 'b'
-              }
-            }],
           style: [
             {
               selector: 'node',
@@ -41,47 +31,155 @@
                 'background-color': 'red',
                 label: 'data(id)'
               }
+            },
+            {
+              selector: 'edge',
+              style: {
+                label: 'data(weight)'
+              }
             }]
         });
-        for (var i = 0; i < 10; i++) {
-            cy.add({
-                data: { id: 'node' + i }
-                }
-            );
-            var source = 'node' + i;
-            cy.add({
-                data: {
-                    id: 'edge' + i,
-                    source: source,
-                    target: (i % 2 == 0 ? 'a' : 'b')
-                }
-            });
-        }
+
+        let max= 10
+        let nodes = 0
+        let edges = 0
+        let min = 2
+        let randMax = Math.floor(Math.random() * (max - min + 1)) + min
+        // createNodes(numNodes)
+        createRandomNodes(min, randMax)
         // cy.ready()
+        console.log('# nodes: ' + nodes)
+        // console.log(cy.edges().connectedNodes())
+
+        createRandomEdges(cy.elements(), cy.nodes())
+        console.log('NODES???')
+        console.log(cy.nodes()[0])
+        console.log(edges)
+
         let layout = cy.layout({
             name: 'circle'
         })
+
         layout.run()
 
-        let dijkstra = cy.elements().dijkstra('#node9')
-        console.log(cy.elements())
-        console.log(dijkstra)
-        let pathToA = dijkstra.pathTo(cy.$('#a'))
+        let test = dijkstra(cy.elements(), cy.nodes()[0], cy.nodes()[randMax - 1])
+        console.log('nodes:')
+        console.log(cy.nodes())
+        // console.log(dijkstra)
+        let pathToA = test.path
+        console.log('path:')
         console.log(pathToA)
-        console.log('path: ' + JSON.stringify(pathToA.data('id')))
         
-        let distToA = dijkstra.distanceTo(cy.$('#a'))
+        let distToA = test.dist
         console.log('distance: ' + distToA)
-
+        console.log('path(): ')
         console.log(path(pathToA))
 
         function path(obj){
           let a = []
           for(let i = 0; i < obj.size(); i++){
-            a.push(JSON.stringify(obj[i].data()))
+            if(obj[i].isNode()){
+              a.push(JSON.stringify(obj[i].data('id')))
+            }
             console.log(JSON.stringify(obj[i].data()))
           }
           return a
         }
+        
+        function createNodes(num){
+          for (var i = 1; i < num; i++) {
+            
+          }
+        }
+
+        function createRandomNodes(){
+          // nodes = Math.floor(Math.random() * (max - min + 1)) + min
+          for (var i = 0; i < randMax; i++) {
+            createNode('1.0.0.1:whatever', i)
+          }
+        }
+
+        function createNode(addr, identifier){
+          cy.add({
+                data: { 
+                  id: 'node' + identifier,
+                  ip: addr,
+                  table: {}
+                }
+            })
+        }
+
+        function createRandomEdges(graph, nodes){
+          while(nodes.connectedEdges()['length'] <= nodes['length']){
+            if(nodes.connectedEdges()['length'] >= nodes['length']){
+              //random 50/50 true or false
+              let choice = Math.random() < 0.5 ? true : false
+                if(choice){ break }
+              }
+
+            let source = Math.floor(Math.random() * randMax)
+            let target = Math.floor(Math.random() * randMax)
+
+            createEdge(nodes, source, target, edges)
+          }
+          //recursion, son
+          if(!connectedGraph(graph, nodes)){
+            createRandomEdges(graph, nodes)
+          }
+        }
+
+        function dijkstra(graph, node, dest){
+          let dijkstra = graph.dijkstra(node)
+          let dist = dijkstra.distanceTo(dest)
+          let path = dijkstra.pathTo(dest)
+
+          return {dist: dist, path: path}
+        }
+
+        function connectedGraph(graph, nodes){
+          let dists = []
+          for(let source = 0; source < nodes['length']; source++){
+            for(let dest = 0; dest < nodes['length']; dest++){
+              if(source != dest){
+                dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
+              }
+            }
+          }
+
+          for(let d = 0; d < dists.length; d++){
+            if(dists[d].dist == Infinity){
+              return false
+            }
+          }
+
+          return true
+        }
+
+        function createEdge(nodes, s, t, identifier){
+          let tempSource = cy.$('#node' + s)
+          let tempTarget = cy.$('#node' + t)
+
+          //prevents multiple edges between two nodes
+          if(tempSource.edgesWith(tempTarget)['length'] > 0){
+            return
+          }
+          //creates edge
+          let edge = cy.add({
+            data: {
+              id: 'edge' + identifier,
+              source: 'node' + s,
+              target: 'node' + t,
+              weight: Math.floor(Math.random() * 10) + 1
+            }
+          })
+          //makes sure the edge isn't a loop
+          if(edge.isSimple()){
+            edges++
+            return
+          }
+          //edge is a loop, so remove it
+          edge.remove()
+        }
+        
     </script>
 </body>
