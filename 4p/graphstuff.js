@@ -1,5 +1,5 @@
-let socket
-socket = io.connect('http://localhost:3000')
+// let socket = re
+// socket = io.connect('http://localhost:3000')
 
 // socket.on('mouse',
 //   // When we receive data
@@ -294,6 +294,7 @@ let realNodes = cy.nodes()
 let realEdges = cy.edges()
 
 module.exports = {
+  cytostuff: cy,
   graph: realGraph,
   nodes: realNodes,
   edges: realEdges
