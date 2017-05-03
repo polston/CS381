@@ -1,3 +1,5 @@
+let cytoscape = require('./node_modules/cytoscape/dist/cytoscape')
+
 // let socket = re
 // socket = io.connect('http://localhost:3000')
 
@@ -8,9 +10,16 @@
 //   }
 // )
 
+// let loldb = require('./loldatabase')
+
 //setup stuff
 let cy = cytoscape({
-  container: document.getElementById('cy'),
+  // container: document.getElementById('cy'),
+  layout: {
+    name: 'breadthfirst',
+    height: 200,
+    width: 200,
+  },
   style: [
     {
       selector: 'node',
@@ -78,7 +87,6 @@ let paths = []
     },
     ...
   }
-
   I'm too stupid to figure this out at the moment
 */
 
@@ -86,18 +94,19 @@ let paths = []
 // createNodes(numNodes)
 
 //creates n nodes between min (2, by default) and randMax
-console.log('create nodes')
 createRandomNodes(min, randMax)
 // cy.ready() //I forgot what this does, but seems to do nothing
-
-console.log('create edges')
 //creates random edges from the nodes available
 createRandomEdges(cy.elements(), cy.nodes())
-
+cy.viewport({
+  height: 200,
+  width: 200
+})
+cy.resize()
 //renders the layout of the nodes in a circle, or whatever
 //you end up putting here from the documentation
 let layout = cy.layout({
-    name: 'circle'
+    name: 'breadthfirst'
 })
 
 //renders the layout once everything is set
@@ -171,10 +180,10 @@ function createNode(addr, identifier){
 function createRandomEdges(graph, nodes){
   console.log('random edge')
   //while there are less nodes with edges than there are nodes
-  while(nodes.connectedEdges()['length'] <= nodes['length']){
+  while(nodes.connectedEdges()['length'] < nodes['length']-1){
     //50% chance to keep adding nodes after the fact, currently does nothing
     //because the while breaks out, maybe fix it later
-    if(nodes.connectedEdges()['length'] >= nodes['length']){
+    if(nodes.connectedEdges()['length'] >= nodes['length']-1){
       //random 50/50 true or false
       let choice = Math.random() < 0.5 ? true : false
         if(choice){ break }
@@ -182,9 +191,11 @@ function createRandomEdges(graph, nodes){
     
     //between 0 and the max random number,
     //so in createEdges() 'node#', basically
+    
     let source = Math.floor(Math.random() * randMax)
     let target = Math.floor(Math.random() * randMax)
-    console.log('create edges')
+    console.log('wut: ' + ((nodes.connectedEdges()['length'] == 1) && (nodes['length'] == 2)))
+    console.log('connectedEdges: ' + nodes.connectedEdges()['length'] + ' nodes: ' + nodes['length'] + ' randMax:' + randMax + ' source: ' + source + ' target: ' + target)
     createEdge(nodes, source, target, edges)
   }
   //recursion, son
@@ -238,6 +249,8 @@ function connectedGraph(graph, nodes){
     //if the distance between the source and destination is infinity, 
     //the graph is not fully connected, and is invalid
     if(dists[d].dist == Infinity){
+      console.log('infinity: removed')
+      removeEdges(nodes.connectedEdges())
       return false
     }
   }
@@ -247,7 +260,13 @@ function connectedGraph(graph, nodes){
   console.log('temp: ' + paths)
   return true
 }
-
+function removeEdges(edges){
+  for(let e = 0; e < edges['length']; e++){
+    edges.remove()
+  }
+  edges = 0
+  return 'done'
+}
 //creates an edge from:
 //s = source node
 //t = target/destination node
@@ -257,11 +276,9 @@ function connectedGraph(graph, nodes){
 function createEdge(nodes, s, t, identifier){
   let tempSource = cy.$('#node' + s)
   let tempTarget = cy.$('#node' + t)
-
   //prevents multiple edges between two nodes
-  console.log('create edges: s: ' + s + ' t: ' + t)
   if(tempSource.edgesWith(tempTarget)['length'] > 0){
-    console.log('return')
+    console.log('create edges: s: ' + s + ' t: ' + t)
     return
   }
   
@@ -281,8 +298,9 @@ function createEdge(nodes, s, t, identifier){
     edges++
     return
   }
-  console.log('not loop')
+  
   //edge is a loop, so remove it
+  console.log('remove edge')
   edge.remove()
 }
 
@@ -293,9 +311,25 @@ let realGraph = cy.elements()
 let realNodes = cy.nodes()
 let realEdges = cy.edges()
 
-module.exports = {
-  cytostuff: cy,
-  graph: realGraph,
-  nodes: realNodes,
-  edges: realEdges
-}
+// let socket = io.connect('http://localhost:3000')
+
+cy.nodes().on('click', function(){
+  // n = n.add(this)
+  console.log(this.data())
+  socket.emit('sending clickaroo click', {data : this.id()})
+})
+
+console.log(cy.nodes()[0].position())
+cy.nodes()[0].position('y', 100)
+console.log(cy.nodes()[0].position())
+
+module.exports = cy
+
+// console.log(cy.json())
+
+// module.exports = {
+//   cytostuff: cy,
+//   graph: realGraph,
+//   nodes: realNodes,
+//   edges: realEdges
+// }

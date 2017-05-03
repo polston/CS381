@@ -1,12 +1,12 @@
 // let socket
 // socket = io.connect('http://localhost:3000')
 
-socket.on('mouse',
-  // When we receive data
-  function(data) {
-    console.log("Got: " + data.x + " " + data.y);
-  }
-)
+// socket.on('mouse',
+//   // When we receive data
+//   function(data) {
+//     console.log("Got: " + data.x + " " + data.y);
+//   }
+// )
 
 //setup stuff
 let cy = cytoscape({
@@ -86,9 +86,11 @@ let paths = []
 // createNodes(numNodes)
 
 //creates n nodes between min (2, by default) and randMax
+console.log('create nodes')
 createRandomNodes(min, randMax)
 // cy.ready() //I forgot what this does, but seems to do nothing
 
+console.log('create edges')
 //creates random edges from the nodes available
 createRandomEdges(cy.elements(), cy.nodes())
 
@@ -167,8 +169,9 @@ function createNode(addr, identifier){
 
 //randomly creates edges between all nodes on the graph
 function createRandomEdges(graph, nodes){
+  console.log('random edge')
   //while there are less nodes with edges than there are nodes
-  while(nodes.connectedEdges()['length'] <= nodes['length']){
+  while(nodes.connectedEdges()['length'] < nodes['length'] - 1){
     //50% chance to keep adding nodes after the fact, currently does nothing
     //because the while breaks out, maybe fix it later
     if(nodes.connectedEdges()['length'] >= nodes['length']){
@@ -181,11 +184,12 @@ function createRandomEdges(graph, nodes){
     //so in createEdges() 'node#', basically
     let source = Math.floor(Math.random() * randMax)
     let target = Math.floor(Math.random() * randMax)
-
+    console.log('create edges')
     createEdge(nodes, source, target, edges)
   }
   //recursion, son
   if(!connectedGraph(graph, nodes)){
+    console.log('connected graph')
     createRandomEdges(graph, nodes)
   }
 }
@@ -255,7 +259,9 @@ function createEdge(nodes, s, t, identifier){
   let tempTarget = cy.$('#node' + t)
 
   //prevents multiple edges between two nodes
+  console.log('create edges: s: ' + s + ' t: ' + t)
   if(tempSource.edgesWith(tempTarget)['length'] > 0){
+    console.log('return')
     return
   }
   
@@ -271,13 +277,15 @@ function createEdge(nodes, s, t, identifier){
   
   //makes sure the edge isn't a loop
   if(edge.isSimple()){
+    console.log('loop')
     edges++
     return
   }
-  
+  console.log('not loop')
   //edge is a loop, so remove it
   edge.remove()
 }
+
 // let n = cy.collection()
 // cy.nodes().on('click', function(){
 //   n = n.add(this)

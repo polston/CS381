@@ -8,7 +8,7 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="/sockets"></script>
   <script src="/cytoscape"></script>
   <!--<script src="/socketstuff"></script>-->
   
@@ -40,9 +40,9 @@
     </pre>
   
   <script>
-    let socket = io()
+    let socket = io('http://localhost:3000')
   </script>
-  <script src="/graphstuff.js"></script>
+  <script src="/graphstuff2.js"></script>
 <script> 
   // $(document).on('click', function(event){
   //     socket.emit('clickaroo', event)

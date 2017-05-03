@@ -8,7 +8,8 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-  <script src="/sockets"></script>
+  <!--<script src="/sockets"></script>-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
   <script src="/cytoscape"></script>
   <!--<script src="/socketstuff"></script>-->
   
@@ -40,23 +41,56 @@
     </pre>
   
   <script>
-    // socket = io()
+    let cy = cytoscape({container: document.getElementById('cy')})
+    
+    let layout
+    let graph
+    cy.json(graph)
   </script>
-  <script src="./graphstuff.js"></script>
+  <!--<script src="/graphstuff"></script>-->
 <script> 
+let socket = io('http://localhost:3000')
+// let graphstuff = require('./graphstuff.js')
+
+socket.on('connect', function(data){
+  console.log(socket.id); // 'G5p5...'
+});
+
+socket.on('initGraph', function(data){
+  console.log(data)
+  graph = data.elements
+  cy.json({elements: data.elements})
+  console.log(JSON.stringify(data.elements.nodes, null, 2))
+  
+  // cy = cytoscape({})
+  // cy.json(data)
+
+  // cy.json(data)
+
+  // layout = cy.layout({
+  //   name: 'breadthfirst'
+  // })
+
+  // //renders the layout once everything is set
+  // layout.run()
+  console.log(JSON.stringify(cy.nodes().position(), null, 2))
+})
+
   // $(document).on('click', function(event){
   //     socket.emit('clickaroo', event)
   //   })
 
-  //   socket.io.on('clickaroo', function(data){
-  //     $(data.id).trigger('click')
+    // socket.io.on('clickaroo', function(data){
+    //   $(data.id).trigger('click')
     // })
-let socket = io.connect('http://localhost:3000')
-
-cy.nodes().on('click', function(){
+// let socket = io.connect('http://localhost:3000')
+// let cy = 
+console.log(cy.nodes())
+cy.nodes().on('click', function(data){
   // n = n.add(this)
+  console.log('this data')
   console.log(this.data())
-  socket.emit('sending clickaroo click', {data : this.id()})
+  socket.emit('clickaroo', { data: this.data()})
 })
 
 socket.on('clickaroo', function(data){
