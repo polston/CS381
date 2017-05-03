@@ -20,6 +20,12 @@
 
 <body>
     <div id="cy"></div>
+    <h1 id="connected">
+      poop
+    </h1>
+    <pre id="paths">
+      poop
+    </pre>
     <script>
         var cy = cytoscape({
           container: document.getElementById('cy'),
@@ -45,16 +51,40 @@
         let edges = 0
         let min = 2
         let randMax = Math.floor(Math.random() * (max - min + 1)) + min
+        let connected = false
+        let paths = []
+        /*
+          paths should be:
+          paths = {
+            sourceNode#: {
+              destNode#:{
+                array from paths for this source -> dest
+              },
+              destNode#+1:{
+                array from paths for this source -> dest
+              },
+              ...
+            },
+            sourceNode#+1:{
+              destNode#:{
+                array from paths for this source -> dest
+              },
+              destNode#+1:{
+                array from paths for this source -> dest
+              },
+              ...
+            },
+            ...
+          }
+
+          I'm too stupid to figure this out at the moment
+        */
+
         // createNodes(numNodes)
         createRandomNodes(min, randMax)
         // cy.ready()
-        console.log('# nodes: ' + nodes)
-        // console.log(cy.edges().connectedNodes())
 
         createRandomEdges(cy.elements(), cy.nodes())
-        console.log('NODES???')
-        console.log(cy.nodes()[0])
-        console.log(edges)
 
         let layout = cy.layout({
             name: 'circle'
@@ -79,9 +109,9 @@
           let a = []
           for(let i = 0; i < obj.size(); i++){
             if(obj[i].isNode()){
-              a.push(JSON.stringify(obj[i].data('id')))
+              a.push(obj[i].data('id'))
             }
-            console.log(JSON.stringify(obj[i].data()))
+            // console.log(JSON.stringify(obj[i].data()))
           }
           return a
         }
@@ -132,26 +162,32 @@
           let dijkstra = graph.dijkstra(node)
           let dist = dijkstra.distanceTo(dest)
           let path = dijkstra.pathTo(dest)
-
           return {dist: dist, path: path}
         }
 
         function connectedGraph(graph, nodes){
           let dists = []
+          // let paths = []
           for(let source = 0; source < nodes['length']; source++){
             for(let dest = 0; dest < nodes['length']; dest++){
               if(source != dest){
+                // paths[source] = {}
                 dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
               }
             }
           }
 
           for(let d = 0; d < dists.length; d++){
+            let a = {}
+            // paths[d].push(path(dists[d].path))
+            // paths.push([d].push(path(dists[d].path)))
+            paths.push(path(dists[d].path))
             if(dists[d].dist == Infinity){
               return false
             }
           }
-
+          connected = true
+          console.log('temp: ' + paths)
           return true
         }
 
@@ -180,6 +216,8 @@
           //edge is a loop, so remove it
           edge.remove()
         }
-        
+
+        document.getElementById('connected').innerHTML = 'connected: ' + connected
+        document.getElementById('paths').innerHTML = 'paths: ' + JSON.stringify(paths, null, 2)
     </script>
 </body>
