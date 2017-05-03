@@ -273,6 +273,8 @@
         //s = source node
         //t = target/destination node
         //identifer = the # after the node name, basically
+        //FIXME: I think the inifinite loop that crashes the browser
+        //is occuring here, but I'm not entirely sure where...?
         function createEdge(nodes, s, t, identifier){
           let tempSource = cy.$('#node' + s)
           let tempTarget = cy.$('#node' + t)
