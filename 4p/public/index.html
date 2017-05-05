@@ -309,6 +309,7 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           return true
         }
         
+        //removes all edges from the graph
         function removeEdges(nodes, edges){
           for(let e = 0; e < edges['length']; e++){
             edges.remove()
@@ -385,8 +386,8 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
         }
         
         
-
-           function missingNode(){
+          //returns the first missing node out of the possible 10
+          function missingNode(){
               let available = []
               for(let i = 0; i < cy.nodes()['length']; i++){
                 let n = cy.nodes()[i].data().id.charAt(4)
@@ -394,7 +395,6 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
                   available.push(parseInt(n))
                 }
               }
-              
               for(let i = 0; i < 10; i++){
                 let num = i.toString()
                 if($.inArray(i, available) == -1){
@@ -403,6 +403,7 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
               }
             }
             
+            //returns a random node that exists in the graph
             function randomNodeIndex(){
               let temp = []
               for(let i = 0; i < cy.nodes()['length']; i++){
