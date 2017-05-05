@@ -3,7 +3,7 @@
 CS 381 - Project 4 - Network Simulator - Dr. Galloway
 Michael Polston, Austin Little
 
-This is the sole file (excepting an image for styling) of our network simulator project.
+This is the only 100% necessary file (excepting an image for styling) of our network simulator project.
 We elected to use JavaScript as our language with the Cytoscape Library. All dependencies are imported with
 CDN tags, so all you should have to do is open the file (with the image in the same folder you open the file from)
 in your browser, and it should work.
@@ -23,27 +23,25 @@ this library can achieve.
     
      
 <!-- Latest compiled and minified CSS -->
- 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
 integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" 
 integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css">
-    
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
-    <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.1.0/cytoscape.js"></script>-->
-
-
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.1.0/cytoscape.js"></script>
-    <script src="../node_modules/cytoscape-qtip/cytoscape-qtip.js"></script>
+<!--qtip tooltip css-->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css">
+<!--jquery cdn-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+<!--qtip tooltip cdn-->
+<script src="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+<!--graphing library cdn-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.1.0/cytoscape.js"></script>
+<!--cytoscape wrapper for qtip tooltips on cytoscape graph elements-->
+<script src="../node_modules/cytoscape-qtip/cytoscape-qtip.js"></script>
     
     
 </head>
-    <!--Button Group with Add/Remove functionality. Calls JS functions to change network-->
+    <!--Button Group with Add/Remove functionality. Calls JS functions (at the bottom) to change network-->
     <div class="btn-group" role="group" aria-label="...">
     <button id="addButton" type="button" class="btn btn-success">Add Router</button>  
     <button id="removeButton" type="button" class="btn btn-danger">Remove Router</button>
@@ -63,22 +61,12 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
 
 <body>
 
-        <h1 id="connected"></h1>
-        <ul id="table"></ul>
+<!--mostly just there from original debugging-->
+<h1 id="connected"></h1>
+<!--no longer actually used-->
+<ul id="table"></ul>
 
-
-    <div id="cy"></div>
-    <!--connectivity of the graph
-     i.e. all nodes have edges, and all nodes are connected in some capacity-->
-    
-      
-    
-    
-    <!--generated paths from node -> destination-->
-    <!--<pre id="paths">-->
-      
-    <!--</pre>-->
-  
+<div id="cy"></div>
     <script>
         //setup stuff
         var cy = cytoscape({
@@ -100,9 +88,6 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
               }
             }]
         });
-        
-        // just use the regular qtip api but on cy elements
-				
 
         //max number of nodes in network
         let max= 10
@@ -147,43 +132,9 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
         //renders the layout once everything is set
         layout.run()
         
-        
-        //WORTHLESS TESTING STUFF
-        let test = dijkstra(cy.elements(), cy.nodes()[0], cy.nodes()[randMax - 1])
-        //('nodes:')
-        //(cy.nodes())
-        // //(dijkstra)
-        let pathToA = test.path
-        //('path:')
-        //(pathToA)
-        
-        let distToA = test.dist
-        //('distance: ' + distToA)
-        //('path(): ')
-        //(path(pathToA))
-        
-       
         connectedEdges(cy.nodes())
-        //WORTHLESS TESTING STUFF
-        // forwardingTable(cy.nodes())
         forwardingTableRedux(cy.nodes())
-        // console.log(cy.nodes())
-        
-    //     cy.elements().qtip({
-    //       var api = ele.qtip('api');
-				// 	content: function(){ return 'Example qTip on ele ' + this.id() },
-				// 	position: {
-				// 		my: 'top center',
-				// 		at: 'bottom center'
-				// 	},
-				// 	style: {
-				// 		classes: 'qtip-bootstrap',
-				// 		tip: {
-				// 			width: 16,
-				// 			height: 8
-				// 		}
-				// 	}
-				// });
+
         
         //returns an array of the path of nodes
         //from the dijkstra object
@@ -193,18 +144,10 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             if(obj[i].isNode()){
               a.push(obj[i].data('id'))
             }
-            // //(JSON.stringify(obj[i].data()))
           }
           return a
         }
-        
-      
-        //FIXME: eventually make n nodes defined by the user
-        function createNodes(num){
-          for (var i = 1; i < num; i++) {
-            
-          }
-        }
+
         
         //Function that generates dummy IP addresses to assign to each node. 
         function generateIp(){
@@ -244,8 +187,6 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             })
         }
         
-        
-        
         //randomly creates edges between all nodes on the graph
         function createRandomEdges(graph, nodes){
           //('random edge')
@@ -260,12 +201,11 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             
             //between 0 and the max random number,
             //so in createEdges() 'node#', basically
-            
             let source = Math.floor(Math.random() * randMax)
             let target = Math.floor(Math.random() * randMax)
             createEdge(nodes, source, target, edges)
           }
-          //recursion, son
+          //FIXME: also one of the potential culprits for the browser crashing
           if(!connectedGraph(graph, nodes)){
             createRandomEdges(graph, nodes)
           }
@@ -284,16 +224,14 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           return {dist: dist, path: path}
         }
         
-
+        
         function connectedEdges(nodes){
           let temp = []
           for(let i = 0; i < nodes['length']; i++){
             let neighborhood = nodes[i].neighborhood()
             nodes[i].data().numLinks = neighborhood.edges()['length']
             for(let n = 0; n < neighborhood['length']; n++){
-              console.log('literally what: ' + neighborhood[n].id())
               if(neighborhood[n].isNode()){
-                console.log('literally what: ' + neighborhood[n].id())
                 nodes[i].data().neighbors.push(neighborhood[n].id())
               }
             }
@@ -301,13 +239,11 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           return temp
         }
         
-        
+        //almost exact copy of connectedGraph, but also calculates the forwarding
+        //tables and connceted edges, this is ran each time a node is added
         function reCalcStuff(graph, nodes){
           let dists = []
           paths = []
-            // let tempEdges =
-          // let tempDijks
-          // let paths = []
           //for each source node
           for(let n = 0; n < nodes['length']; n++){
             nodes[n].data().neighbors = []
@@ -318,30 +254,17 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             for(let dest = 0; dest < nodes['length']; dest++){
               //if the source and desination node aren't the same node
               if(source != dest){
-                // tempEdges[source] = {}
-                // dijkstra() => {dist: distance from one node to another, path: path from one node to another (including edges)}
-                // dijkstra(source, dest) => {dist: #, path: [0, 4, 5, 6,] <- 4 = neighbor
-                // tempDijks = dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest])
-                //push the dijkstra {dist, path} object 
-                //for this source -> dest onto the dist array
                 dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
-                // tempEdges[]
               }
             }
             for(let i = 0; i < nodes['length']; i++){
               nodes[i].data().table = []
-              // console.log(nodes[i].data().table)
             }
-            // forwardingTableRedux(nodes)
           }
           
           //for each dijkstra path found
           for(let d = 0; d < dists.length; d++){
             let a = {}
-            // paths[d].push(path(dists[d].path))
-            // paths.push([d].push(path(dists[d].path)))
-            //TODO: this is bad, and needs to be changed to
-            //how it is in the comment near the top
             paths.push(path(dists[d].path))
           }
           connectedEdges(nodes)
@@ -351,23 +274,15 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
         //returns true if the graph is fully connected (no stray nodes)
         function connectedGraph(graph, nodes){
           let dists = []
-            // let tempEdges =
-          // let tempDijks
-          // let paths = []
           //for each source node
           for(let source = 0; source < nodes['length']; source++){
             //for each destination node
             for(let dest = 0; dest < nodes['length']; dest++){
               //if the source and desination node aren't the same node
               if(source != dest){
-                // tempEdges[source] = {}
-                // dijkstra() => {dist: distance from one node to another, path: path from one node to another (including edges)}
+                // graph.dijkstra(source) => {dist: distance from one node to another, path: path from one node to another (including edges)}
                 // dijkstra(source, dest) => {dist: #, path: [0, 4, 5, 6,] <- 4 = neighbor
-                // tempDijks = dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest])
-                //push the dijkstra {dist, path} object 
-                //for this source -> dest onto the dist array
                 dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
-                // tempEdges[]
               }
             }
           }
@@ -375,10 +290,7 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           //for each dijkstra path found
           for(let d = 0; d < dists.length; d++){
             let a = {}
-            // paths[d].push(path(dists[d].path))
-            // paths.push([d].push(path(dists[d].path)))
-            //TODO: this is poopy, and needs to be changed to
-            //how it is in the comment near the top
+
             paths.push(path(dists[d].path))
             
             //if the distance between the source and destination is infinity, 
@@ -386,7 +298,6 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             if(dists[d].dist == Infinity){
               if(removing == true){
                 paths = []
-                //('infinity: removed')
                 removeEdges(nodes, nodes.connectedEdges())
               }
               return false
@@ -395,13 +306,8 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           
           //the graph is fully connected (but not necessarily complete)
           connected = true
-          //('temp: ' + paths)
           return true
         }
-        
-        // function removeNode(node){
-        //   cy.remove(node)
-        // }
         
         function removeEdges(nodes, edges){
           for(let e = 0; e < edges['length']; e++){
@@ -427,11 +333,8 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           
           //prevents multiple edges between two nodes
           if(tempSource.edgesWith(tempTarget)['length'] > 0){
-            //('create edges: s: ' + s + ' t: ' + t)
             return
           }
-          // tempSource.data().linkWeights = []
-          // tempTarget.data().linkWeights = []
           let weight = Math.floor(Math.random() * 10) + 1
           //creates edge
           let edge = cy.add({
@@ -443,52 +346,24 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             }
           })
 
-          // linkWeights: [],
-        // table: {},
-            // 4.  Link weights between adjacent neighbors
-        // 5.  Forwarding table (based on computing the spanning tree)
           tempSource.data().linkWeights.push({[tempTarget.id()]: weight})
           tempTarget.data().linkWeights.push({[tempSource.id()]: weight})
           //makes sure the edge isn't a loop
           if(edge.isSimple()){
-            //('loop')
-            // let temp = tempTarget.data().id
-            
-            // tempSource.data().linkWeights.push({[tempTarget.id()]: edge.data().weight})
-            // linkWeights.push({[tempTarget.id()]: edge.data().weight})
-            //(tempSource.id())
             edges++
             return
           }
-          // tempSource.data().linkWeights = []
-          //edge is a loop, so remove it
-          //('remove edge')
           edge.remove()
         }
         
         
         
         function forwardingTableRedux(nodes){
-          //returns all of the possible source -> destination pairs, does't exactly work...
-          console.log('paths: ' + paths)
-          
-          // let whatever = paths.filter((i) => {
-          //   console.log('i?: ' + typeof i[0])
-          //   let poop = i.filter((w) => {
-          //     return typeof w === 'undefined'
-          //   })
-          //   console.log('poop:' + typeof poop[0])
-          //   return typeof i === 'undefined'
-          // })
-          
-          // console.log('watev: ' + whatever)
-          let newshit = paths.map((s) => {
-            console.log('???: ' + s)
+          //returns all possible paths
+          let allPaths = paths.map((s) => {
             return s[s.length - 1].charAt(s[0].length-1) +''+ s[0].charAt(s[0].length-1) + '' + s[1].charAt(s[0].length-1)
           })
-          console.log('newshit: ' + newshit)
-          
-          //returns the actual (source -> first) steps
+          //returns the actual destination -> (source, first) steps in three integers in the aforementioned order
           function uniq(a) {
             var seen = {};
               return a.filter(function(item) {
@@ -496,38 +371,15 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
               })
           }
           
-          //(source -> first step to destination) passed to object
-          let test = uniq(newshit)
+          let forwardingPaths = uniq(allPaths)
           
-          // let final = test.map((r) => {
-          //   return {r[]}
-          // })
-          
-          //returns origin node#
-          // let concat = test.map((c) => {
-          //   return c[0].charAt(0)
-          //   return c[0].substr(0, 1)
-          // })
-          
-          //got sleepy
-          // console.log('concat')
-          // console.log(concat)
-          // let final[] = {}
-          // for(let i = 0; i < nodes['length']; i++){
-          //   let final[i].
-          // }
-          // console.log(test)
-          
+          //puts the appropriate tables
+          //into the format dest -> (source, first step) inside of the neighbors in each node
           for(let i = 0; i < nodes['length']; i++){
-            // console.log(nodes[i].data().id.substr(-1))
-            for(let t = 0; t < test.length; t++){
-              // console.log('==: ' + nodes[i].data().id.substr(-1) == test[t].substr(0))
-              // console.log('source: ' + nodes[i].data().id.substr(-1) + ' dest: ' + test[t].charAt(0) + ' source: ' + test[t].charAt(1)+ ' step: ' + test[t].charAt(2))
-              if(nodes[i].data().id.substr(-1) == test[t].charAt(1)){
-                nodes[i].data().table.push([test[t].charAt(0) + ' -> (' + test[t].charAt(1) + ',' + test[t].charAt(2) + ')'])
-                // console.log(nodes[i].data().table)
+            for(let t = 0; t < forwardingPaths.length; t++){
+              if(nodes[i].data().id.substr(-1) == forwardingPaths[t].charAt(1)){
+                nodes[i].data().table.push([forwardingPaths[t].charAt(0) + ' -> (' + forwardingPaths[t].charAt(1) + ',' + forwardingPaths[t].charAt(2) + ')'])
               }
-              // console.log(nodes[i].data().table)
             }
           }
         }
@@ -535,33 +387,17 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
         
 
            function missingNode(){
-              // for(let i = 0; i < cy.nodes()['length'] - 1; i++){
               let available = []
-              console.log(cy.nodes()['length'])
               for(let i = 0; i < cy.nodes()['length']; i++){
                 let n = cy.nodes()[i].data().id.charAt(4)
-                console.log('sdfasf: ' + parseInt(n))
                 if(n != undefined ){
-                  console.log('sdfasdfadfasfsdfasdfasdfasdfasdf: ' + n)
                   available.push(parseInt(n))
                 }
-                
               }
               
-              // available = available.map((i) =>{
-              //   return Number.isInteger(i)
-              // })
-              console.log('available: ' + available)
-            //lol, i'm in class, fuck off
-            //kk documenation is done and I imported the cytoscape CDN and tested in the lab and it works, so yay?
               for(let i = 0; i < 10; i++){
-                console.log('missing?: ' + available[i])
-                console.log('missing?: ' + available)
                 let num = i.toString()
-                console.log('num: ' + num + ' i ' + i.toString())
                 if($.inArray(i, available) == -1){
-                  console.log('indexof: '+ $.inArray(i.toString(), available) +' i: ' + i + ' availablearr: ' + available + ' available[i]: ' + available[i])
-                  console.log('missing???? : ' + i)
                   return i
                 }
               }
@@ -570,8 +406,6 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             function randomNodeIndex(){
               let temp = []
               for(let i = 0; i < cy.nodes()['length']; i++){
-                // console.log('substring: ' + cy.nodes()[i].data().id)
-                // console.log('substring: ' + cy.$('#'+cy.nodes()[i].data().id).data().id.substr(-1))
                 temp.push(cy.nodes()[i].data().id.substr(-1))
               }
               console.log(temp)
@@ -579,50 +413,42 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
             }
             
         
-        
+        //event listener for clicking a node
         cy.on('click', 'node', function(event){
-          // //(this.data())
-          //(this.data())
-          // $('#table li').remove()
           if(selectedNode)
           selectedNode.style({
             'border-width': 0,
-            // 'border-color': 'green'
           })
+          $('#table').empty()
           selectedNode = cy.$('#'+this.data().id)
+          $('#table').append('<h3>Selected: '+selectedNode.data().name+'</h3>')
           selectedNode.style({
             'border-width': 4,
             'border-color': 'green'
           })
         })
         
-    //     cy.nodes().qtip({
-					
-				// })
-        
-        
-        // ip: addr,
-        // numLinks: [],
-        // neighbors: [],
-        // linkWeights: [],
-        // table: [],
+        //event listener for mousing over a node
         cy.on('mouseover', 'node', function(event) {
-          //tempTarget.data().linkWeights.push({[tempSource.id()]: weight})
           var node = event.target
-          // var api = node.qtip('api');
           console.log(cy.getElementById(event.id))
+          //qtip tooltip for the node
           node.qtip({
             content: {
+              //.map of all of the linkweights into an array
               text: () => {
                 links = Object.keys(node.data().linkWeights).map((e) => {
-                  return 'Router: ' + e + ' Edge: ' + Object.values(node.data().linkWeights[e]) + '</br>'//).join()
+                  return 'Router: ' + e + ' Edge: ' + Object.values(node.data().linkWeights[e]) + '</br>'
                 })
+                //.map of all of the routers connected
                 neighbors = node.data().neighbors.map((n) => {
                   return 'Router' + n.slice(-1) + '</br>'
                 })
+                //.map of the forwarding table
                 table = node.data().table.map((t) => {
                   return t + '</br>'
-                }) 
+                })
+                //the actual tooltip display
                 tooltipString = node.data().ip + '<br>Links:</br>' + links.join('') + '</br>Neighbors:</br>' + neighbors.join('') + '</br>Table:</br>' +  table.join('')
                 return tooltipString
               },
@@ -643,97 +469,34 @@ integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/
           }, event)
         })
         
-        // cy.elements().forEach(function (element) {
-        //     var nodeName = element.data("name");
-        //     if (nodeName) {
-        //         // var api = element.qtip('api');
-        //         element.qtip({
-        //             content: {
-        //                 text: nodeName
-        //             },
-        //             position: {
-        //                 target: 'mouse',
-        //             },
-        //             show: {
-        //                 event: 'mouseover'
-        //             },
-        //             hide: {
-        //                 event: 'click mouseout'
-        //             },
-        //             style: {
-        //                 classes: 'qtip-tipsy'
-        //             }
-        //         });
-        //     }
-        // });
-        
-        
-        // cy.on('mouseover', 'node', function(event) {
-        //   var node = event.target
-        //   console.log(cy.getElementById(event.id))
-        //   cy.getElementById(event.id).qtip({
-        //       content: 'hello',
-        //       show: {
-        //           // solo: true,
-        //           event: event.type,
-        //           ready: true
-        //       },
-        //       hide: {
-        //           event: 'mouseout unfocus'
-        //       }
-        //   }, event)
-        // });
-        
+        //remove node button
         $('#removeButton').click(function(event){
-          //('removing: ' + selectedNode.data().id)
-          // removing = true
           cy.$('#'+selectedNode.data().id).remove()
-          // if(!connectedGraph(cy.elements(), cy.nodes())){
-          //   selectedNode.restore()
-          // }
-          // removing = false
+          //recalculates the entire graph
           reCalcStuff(cy.elements(), cy.nodes())
-
-          
         })
         
-        //this isn't working, obivously **obviously**
+        //add node button
         $('#addButton').click(function(event){
-          //('adding: ' + selectedNode.data().id)
-          // function createEdge(nodes, s, t, identifier){
-          
+          //only fire if < 10 nodes
           if(cy.nodes()['length'] < 10 ){
-            // for()
-            // missingNode = missingNode()
-            // let test = Math.floor(cy.nodes()['length']+Math.random()*100)
-            
+
             let test = Math.floor((cy.nodes()['length'] - 2)*Math.random(), Math.random())
             let missing = missingNode()
             let r = randomNodeIndex()
-            // if()
-            // let available = 
-            // while(!cy.nodes())
-            console.log('nodes ' + cy.nodes()['length'])
-            console.log('nodes - 1 ' + (cy.nodes()['length'] - 1))
-            console.log(' test: ' + test)
-            console.log('missingNode: ' + missingNode())
-          
-          // createNode(generateIp(), cy.nodes()['length'] )
-          createNode(generateIp(), missing)
-          // if(cy.nodes())
-          createEdge(cy.nodes(), missing, r, Math.random()*100)
-          // createEdge(cy.nodes(), test, Math.floor(cy.nodes()['length']*Math.random(), Math.random()))
-          // cy.$('#'+selectedNode.data().id+1).add()
-          // cy.load()
-          
+            //creates new node with the # of the first missing from the 10 possible
+            createNode(generateIp(), missing)
+            //creates an edge from the created node to a random existing node
+            createEdge(cy.nodes(), missing, r, Math.random()*100)
           }
           
+          //redoes the layout
           let layout = cy.layout({
               name: 'circle'
           })
           layout.run()
+          //recalcuates the paths
           reCalcStuff(cy.elements(), cy.nodes())
-          // cy.forceRender()
           layout.run()
           
         })
