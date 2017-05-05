@@ -1,0 +1,511 @@
+<!doctype html>
+<!--
+CS 381 - Project 4 - Network Simulator - Dr. Galloway
+Michael Polston, Austin Little
+
+This file and the cytoscape-qtip wrapper are the only required files(excepting an image for styling) of our network simulator project.
+We elected to use JavaScript as our language with the Cytoscape Library. All dependencies are imported with
+CDN tags(except cytoscape-qtip), so all you should have to do is open the file (with the image in the same folder you open the file from)
+in your browser, and it should work.
+
+If you want the tooltips, and consequently the data that each router holds, run npm install while inside of the /4p directory
+
+http://js.cytoscape.org/
+This is a really cool library that's work checking out. This link includes various demos on the top of the page of the possible applications
+this library can achieve.
+
+-->
+
+<html>
+
+<head>
+
+    <meta charset="utf-8"></meta>
+    <title>CS381 Project 4</title>
+    
+     
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" 
+integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<!--qtip tooltip css-->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css">
+<!--jquery cdn-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+<!--qtip tooltip cdn-->
+<script src="//cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+<!--graphing library cdn-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.1.0/cytoscape.js"></script>
+<!--cytoscape wrapper for qtip tooltips on cytoscape graph elements-->
+<script src="../node_modules/cytoscape-qtip/cytoscape-qtip.js"></script>
+    
+    
+</head>
+    <!--Button Group with Add/Remove functionality. Calls JS functions (at the bottom) to change network-->
+    <div class="btn-group" role="group" aria-label="...">
+    <button id="addButton" type="button" class="btn btn-success">Add Router</button>  
+    <button id="removeButton" type="button" class="btn btn-danger">Remove Router</button>
+    </div>
+    
+<style>
+    #cy {
+        width: 90%;
+        height: 90%;
+        position: absolute;
+        margin-top: 50px;
+        top: 0px;
+        left: 0px;
+    }
+</style>
+
+
+<body>
+
+<!--mostly just there from original debugging-->
+<h1 id="connected"></h1>
+<!--no longer actually used-->
+<ul id="table"></ul>
+
+<div id="cy"></div>
+    <script>
+        //setup stuff
+        var cy = cytoscape({
+          container: document.getElementById('cy'),
+          style: [
+            {
+              selector: 'node', //the selected is the term we use to actually identify the object
+              style: {
+                shape: 'circle',
+                'background-image': "router-32.png", //set image for node objects
+                'background-color': "white", //icons are transparent background, set a color of underlying shape
+                label: 'data(name)' //setting a label for each node to uniquely identify as routers
+              }
+            },
+            {
+              selector: 'edge',
+              style: {
+                label: 'data(weight)', //we set the label for each link to be the weight we generate 
+              }
+            }]
+        });
+
+        //max number of nodes in network
+        let max= 10
+        
+        //how many nodes are on the canvas
+        let nodes = 0
+        
+        //how many edges are on the canvas
+        let edges = 0
+        
+        //minimum number of nodes, kind of worthless to be less than 2
+        let min = 2
+        
+        //randomly generated number inclusive of max and min
+        //e.g. min: 3, max: 7
+        //would generate an integer in the set of [3, 4, 5, 6, 7]
+        let randMax = Math.floor(Math.random() * (max - min + 1)) + min
+        
+        //whether or not the graph is connected
+        //(not necessarily complete)
+        //changed in connectedGraph()
+        let connected = false
+        let selectedNode
+
+        let paths = []
+        //let linkWeights = []
+        let removing = false
+
+
+        //creates random nodes for the graph
+        createRandomNodes(min, randMax)
+
+        //creates random edges from the nodes available
+        createRandomEdges(cy.elements(), cy.nodes())
+        
+        
+        //renders the graph in a particular layout, based on specified value from documentation 
+        let layout = cy.layout({
+            name: 'circle'
+        })
+        
+        //renders the layout once everything is set
+        layout.run()
+        
+        connectedEdges(cy.nodes())
+        forwardingTableRedux(cy.nodes())
+
+        
+        //returns an array of the path of nodes
+        //from the dijkstra object
+        function path(obj){
+          let a = []
+          for(let i = 0; i < obj.size(); i++){
+            if(obj[i].isNode()){
+              a.push(obj[i].data('id'))
+            }
+          }
+          return a
+        }
+
+        
+        //Function that generates dummy IP addresses to assign to each node. 
+        function generateIp(){
+          let min = 1 
+          let max = 256
+          let v1 = Math.floor(Math.random() * (max-min)) + min //randomly generates a value between 1-255.
+          let v2 = Math.floor(Math.random() * (max-min)) + min
+          let v3 = Math.floor(Math.random() * (max-min)) + min
+          let v4 = Math.floor(Math.random() * (max-min)) + min
+          let num = v1 + "." + v2 + "." + v3 + "." + v4 //build your string
+          let ip = num.toString() //cast to string
+          return ip
+        }
+        
+        //creates n nodes, where n is the integer value
+        //of the global randMax
+        function createRandomNodes(){
+          for (var i = 0; i < randMax; i++) {
+            createNode(generateIp(), i) //for each node, generate a new IP and assign an ID
+          }
+        }
+        
+        //creates a node from:
+        //addr = ip address (dummy value since Challenge 3 wasn't implemented)
+        //identifer = node
+        function createNode(addr, identifier){
+          cy.add({
+                data: { 
+                  id: 'node' + identifier,
+                  ip: addr,
+                  numLinks: [],
+                  neighbors: [],
+                  linkWeights: [],
+                  table: [],
+                  name: 'Router ' + identifier
+                }
+            })
+        }
+        
+        //randomly creates edges between all nodes on the graph
+        function createRandomEdges(graph, nodes){
+          //('random edge')
+          //while there are less nodes with edges than there are nodes
+          while(nodes.connectedEdges()['length'] < nodes['length']-1){
+            //50% chance to keep adding nodes after the fact
+            if(nodes.connectedEdges()['length'] >= nodes['length']-1){
+              //random 50/50 true or false
+              let choice = Math.random() < 0.5 ? true : false
+                if(choice){ break }
+              }
+            
+            //between 0 and the max random number,
+            //so in createEdges() 'node#', basically
+            let source = Math.floor(Math.random() * randMax)
+            let target = Math.floor(Math.random() * randMax)
+            createEdge(nodes, source, target, edges)
+          }
+          //FIXME: also one of the potential culprits for the browser crashing
+          if(!connectedGraph(graph, nodes)){
+            createRandomEdges(graph, nodes)
+          }
+        }
+        
+        //returns the distance and path objects for a path from node -> destination
+        function dijkstra(graph, node, dest){
+          //give a graph and node .dijkstra produces a function
+          let dijkstra = graph.dijkstra(node)
+          //dist object between a source and target, can be type Infinity
+          let dist = dijkstra.distanceTo(dest)
+          //path object between source and target
+          //both nodes and edges are maintained
+          let path = dijkstra.pathTo(dest)
+          
+          return {dist: dist, path: path}
+        }
+        
+        
+        function connectedEdges(nodes){
+          let temp = []
+          for(let i = 0; i < nodes['length']; i++){
+            let neighborhood = nodes[i].neighborhood()
+            nodes[i].data().numLinks = neighborhood.edges()['length']
+            for(let n = 0; n < neighborhood['length']; n++){
+              if(neighborhood[n].isNode()){
+                nodes[i].data().neighbors.push(neighborhood[n].id())
+              }
+            }
+          }
+          return temp
+        }
+        
+        //almost exact copy of connectedGraph, but also calculates the forwarding
+        //tables and connceted edges, this is ran each time a node is added
+        function reCalcStuff(graph, nodes){
+          let dists = []
+          paths = []
+          //for each source node
+          for(let n = 0; n < nodes['length']; n++){
+            nodes[n].data().neighbors = []
+          }
+          
+          for(let source = 0; source < nodes['length']; source++){
+            //for each destination node
+            for(let dest = 0; dest < nodes['length']; dest++){
+              //if the source and desination node aren't the same node
+              if(source != dest){
+                dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
+              }
+            }
+            for(let i = 0; i < nodes['length']; i++){
+              nodes[i].data().table = []
+            }
+          }
+          
+          //for each dijkstra path found
+          for(let d = 0; d < dists.length; d++){
+            let a = {}
+            paths.push(path(dists[d].path))
+          }
+          connectedEdges(nodes)
+          forwardingTableRedux(nodes)
+        }
+        
+        //returns true if the graph is fully connected (no stray nodes)
+        function connectedGraph(graph, nodes){
+          let dists = []
+          //for each source node
+          for(let source = 0; source < nodes['length']; source++){
+            //for each destination node
+            for(let dest = 0; dest < nodes['length']; dest++){
+              //if the source and desination node aren't the same node
+              if(source != dest){
+                // graph.dijkstra(source) => {dist: distance from one node to another, path: path from one node to another (including edges)}
+                // dijkstra(source, dest) => {dist: #, path: [0, 4, 5, 6,] <- 4 = neighbor
+                dists.push(dijkstra(cy.elements(), cy.nodes()[source], cy.nodes()[dest]))
+              }
+            }
+          }
+          
+          //for each dijkstra path found
+          for(let d = 0; d < dists.length; d++){
+            let a = {}
+
+            paths.push(path(dists[d].path))
+            
+            //if the distance between the source and destination is infinity, 
+            //the graph is not fully connected, and is invalid
+            if(dists[d].dist == Infinity){
+              if(removing == true){
+                paths = []
+                removeEdges(nodes, nodes.connectedEdges())
+              }
+              return false
+            }
+          }
+          
+          //the graph is fully connected (but not necessarily complete)
+          connected = true
+          return true
+        }
+        
+        //removes all edges from the graph
+        function removeEdges(nodes, edges){
+          for(let e = 0; e < edges['length']; e++){
+            edges.remove()
+          }
+          for(let n = 0; n < nodes['length']; n++){
+            nodes[n].data().linkWeights = []
+          }
+          // linkWeights = []
+          edges = 0
+          return 'done'
+        }
+
+        //creates an edge from:
+        //s = source node
+        //t = target/destination node
+        //identifer = the # after the node name, basically
+        //FIXME: I think the inifinite loop that crashes the browser
+        //is occuring here, but I'm not entirely sure where...?
+        function createEdge(nodes, s, t, identifier){
+          let tempSource = cy.$('#node' + s)
+          let tempTarget = cy.$('#node' + t)
+          
+          //prevents multiple edges between two nodes
+          if(tempSource.edgesWith(tempTarget)['length'] > 0){
+            return
+          }
+          let weight = Math.floor(Math.random() * 10) + 1
+          //creates edge
+          let edge = cy.add({
+            data: {
+              id: 'edge' + identifier,
+              source: 'node' + s,
+              target: 'node' + t,
+              weight: weight
+            }
+          })
+
+          tempSource.data().linkWeights.push({[tempTarget.id()]: weight})
+          tempTarget.data().linkWeights.push({[tempSource.id()]: weight})
+          //makes sure the edge isn't a loop
+          if(edge.isSimple()){
+            edges++
+            return
+          }
+          edge.remove()
+        }
+        
+        
+        
+        function forwardingTableRedux(nodes){
+          //returns all possible paths
+          let allPaths = paths.map((s) => {
+            return s[s.length - 1].charAt(s[0].length-1) +''+ s[0].charAt(s[0].length-1) + '' + s[1].charAt(s[0].length-1)
+          })
+          //returns the actual destination -> (source, first) steps in three integers in the aforementioned order
+          function uniq(a) {
+            var seen = {};
+              return a.filter(function(item) {
+                return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+              })
+          }
+          
+          let forwardingPaths = uniq(allPaths)
+          
+          //puts the appropriate tables
+          //into the format dest -> (source, first step) inside of the neighbors in each node
+          for(let i = 0; i < nodes['length']; i++){
+            for(let t = 0; t < forwardingPaths.length; t++){
+              if(nodes[i].data().id.substr(-1) == forwardingPaths[t].charAt(1)){
+                nodes[i].data().table.push([forwardingPaths[t].charAt(0) + ' -> (' + forwardingPaths[t].charAt(1) + ',' + forwardingPaths[t].charAt(2) + ')'])
+              }
+            }
+          }
+        }
+        
+        
+          //returns the first missing node out of the possible 10
+          function missingNode(){
+              let available = []
+              for(let i = 0; i < cy.nodes()['length']; i++){
+                let n = cy.nodes()[i].data().id.charAt(4)
+                if(n != undefined ){
+                  available.push(parseInt(n))
+                }
+              }
+              for(let i = 0; i < 10; i++){
+                let num = i.toString()
+                if($.inArray(i, available) == -1){
+                  return i
+                }
+              }
+            }
+            
+            //returns a random node that exists in the graph
+            function randomNodeIndex(){
+              let temp = []
+              for(let i = 0; i < cy.nodes()['length']; i++){
+                temp.push(cy.nodes()[i].data().id.substr(-1))
+              }
+              console.log(temp)
+              return temp[Math.floor(Math.random()*temp.length)]
+            }
+            
+        
+        //event listener for clicking a node
+        cy.on('click', 'node', function(event){
+          if(selectedNode)
+          selectedNode.style({
+            'border-width': 0,
+          })
+          $('#table').empty()
+          selectedNode = cy.$('#'+this.data().id)
+          $('#table').append('<h3>Selected: '+selectedNode.data().name+'</h3>')
+          selectedNode.style({
+            'border-width': 4,
+            'border-color': 'green'
+          })
+        })
+        
+        //event listener for mousing over a node
+        cy.on('mouseover', 'node', function(event) {
+          var node = event.target
+          console.log(cy.getElementById(event.id))
+          //qtip tooltip for the node
+          node.qtip({
+            content: {
+              //.map of all of the linkweights into an array
+              text: () => {
+                links = Object.keys(node.data().linkWeights).map((e) => {
+                  return 'Router: ' + e + ' Edge: ' + Object.values(node.data().linkWeights[e]) + '</br>'
+                })
+                //.map of all of the routers connected
+                neighbors = node.data().neighbors.map((n) => {
+                  return 'Router' + n.slice(-1) + '</br>'
+                })
+                //.map of the forwarding table
+                table = node.data().table.map((t) => {
+                  return t + '</br>'
+                })
+                //the actual tooltip display
+                tooltipString = node.data().ip + '<br>Links:</br>' + links.join('') + '</br>Neighbors:</br>' + neighbors.join('') + '</br>Table:</br>' +  table.join('')
+                return tooltipString
+              },
+            },
+            position: {
+              target: 'mouse',
+            },
+            show: {
+              event: event.type,
+              ready: true
+            },
+            hide: {
+              event: 'mouseout unfocus'
+            },
+            style: {
+              classes: 'qtip-bootstrap'
+            }
+          }, event)
+        })
+        
+        //remove node button
+        $('#removeButton').click(function(event){
+          cy.$('#'+selectedNode.data().id).remove()
+          //recalculates the entire graph
+          reCalcStuff(cy.elements(), cy.nodes())
+        })
+        
+        //add node button
+        $('#addButton').click(function(event){
+          //only fire if < 10 nodes
+          if(cy.nodes()['length'] < 10 ){
+
+            let test = Math.floor((cy.nodes()['length'] - 2)*Math.random(), Math.random())
+            let missing = missingNode()
+            let r = randomNodeIndex()
+            //creates new node with the # of the first missing from the 10 possible
+            createNode(generateIp(), missing)
+            //creates an edge from the created node to a random existing node
+            createEdge(cy.nodes(), missing, r, Math.random()*100)
+          }
+          
+          //redoes the layout
+          let layout = cy.layout({
+              name: 'circle'
+          })
+          layout.run()
+          //recalcuates the paths
+          reCalcStuff(cy.elements(), cy.nodes())
+          layout.run()
+          
+        })
+        
+        document.getElementById('connected').innerHTML = 'connected: ' + connected
+        document.getElementById('paths').innerHTML = 'paths: ' + JSON.stringify(paths, null, 2)
+    </script>
+</body>
+
